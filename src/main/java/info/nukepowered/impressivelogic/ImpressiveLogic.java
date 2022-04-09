@@ -1,6 +1,5 @@
 package info.nukepowered.impressivelogic;
 
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -8,6 +7,14 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import info.nukepowered.impressivelogic.common.registry.BlockRegistry;
+import info.nukepowered.impressivelogic.common.registry.ItemRegistry;
+
+/**
+ * 
+ * @author TheDarkDnKTv
+ *
+ */
 @Mod(ImpressiveLogic.MODID)
 public class ImpressiveLogic {
 
@@ -17,7 +24,9 @@ public class ImpressiveLogic {
 	public ImpressiveLogic() {
 		FMLJavaModLoadingContext.get().getModEventBus()
 			.addListener(this::setup);
-		MinecraftForge.EVENT_BUS.register(this);
+		
+		BlockRegistry.init();
+		ItemRegistry.init();
 	}
 
 	private void setup(final FMLCommonSetupEvent event) {

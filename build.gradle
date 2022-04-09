@@ -86,11 +86,20 @@ minecraft {
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
-	
+	maven {
+		url = "https://dvs1.progwml6.com/files/maven/"
+	}
+
+    flatDir {
+        dir 'libs'
+    }
 }
 
 dependencies {
     minecraft "net.minecraftforge:forge:${project.mc_version}-${project.forge_version}"
+    runtimeOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}")
+	
+	implementation fg.deobf("mcjty.theoneprobe:theoneprobe-1.18:5.1.0")
 }
 
 jar {
