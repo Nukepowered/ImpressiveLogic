@@ -1,0 +1,21 @@
+modLoader="javafml"
+loaderVersion="[40,)"
+license="All rights reserved"
+issueTrackerURL="https://github.com/Nukepowered/ImpressiveLogic/issues"
+[[mods]]
+modId="impressivelogic"
+version="${file.jarVersion}"
+displayName="Impressive Logic"
+displayURL="https://nukepowered.info/"
+#logoFile="logo.png"
+credits="test123"
+authors="TheDarkDnKTv"
+description='''
+Mod description 123
+'''
+[[dependencies.impressivelogic]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.18.2,1.19)"
+    ordering="NONE"
+    side="BOTH"
