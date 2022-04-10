@@ -4,8 +4,9 @@ import info.nukepowered.impressivelogic.common.block.BaseWireBlock;
 import net.minecraft.world.level.material.Material;
 
 /**
- * @author TheDarkDnKTv
+ * Copyright (c) Nukepowered 2022.
  *
+ * @author TheDarkDnKTv
  */
 public final class NetworkCableBlock extends BaseWireBlock {
 
