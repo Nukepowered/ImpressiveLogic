@@ -8,6 +8,11 @@ import net.minecraftforge.registries.RegistryObject;
 
 import java.util.function.Supplier;
 
+/**
+ * Copyright (c) Nukepowered 2022.
+ *
+ * @author TheDarkDnKTv
+ */
 public class ImpressiveLogicTabs {
 
     public static final CreativeModeTab MAIN = createNewTab(() -> BlockRegistry.NETWORK_CABLE, "main");

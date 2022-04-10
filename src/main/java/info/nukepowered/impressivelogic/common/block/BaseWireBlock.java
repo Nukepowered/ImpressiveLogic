@@ -1,6 +1,5 @@
 package info.nukepowered.impressivelogic.common.block;
 
-import com.google.common.collect.Collections2;
 import info.nukepowered.impressivelogic.api.logic.INetworkCable;
 import info.nukepowered.impressivelogic.common.logic.network.LogicNetworkRegistry;
 
@@ -12,7 +11,6 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -26,11 +24,10 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
-import static info.nukepowered.impressivelogic.ImpressiveLogic.LOGGER;
-
 /**
- * @author TheDarkDnKTv
+ * Copyright (c) Nukepowered 2022.
  *
+ * @author TheDarkDnKTv
  */
 public abstract class BaseWireBlock extends Block implements INetworkCable {
 

@@ -16,8 +16,9 @@ import java.util.Properties;
 import java.util.function.Supplier;
 
 /**
- * @author TheDarkDnKTv
+ * Copyright (c) Nukepowered 2022.
  *
+ * @author TheDarkDnKTv
  */
 public class BlockRegistry {
 	
