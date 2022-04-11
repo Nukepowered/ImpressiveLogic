@@ -12,7 +12,7 @@
             ]
          },
          "apply":{
-            "model":"impressivelogic:block/network_cable_none"
+            "model":"impressivelogic:block/cable/network_cable_none"
          }
       },
       {
@@ -24,7 +24,7 @@
             ]
          },
          "apply":{
-            "model":"impressivelogic:block/network_cable_side0"
+            "model":"impressivelogic:block/cable/network_cable_side0"
          }
       },
       {
@@ -36,7 +36,7 @@
             ]
          },
          "apply":{
-            "model":"impressivelogic:block/network_cable_side_alt0"
+            "model":"impressivelogic:block/cable/network_cable_side_alt0"
          }
       },
       {
@@ -48,7 +48,7 @@
             ]
          },
          "apply":{
-            "model":"impressivelogic:block/network_cable_side_alt1",
+            "model":"impressivelogic:block/cable/network_cable_side_alt1",
             "y":270
          }
       },
@@ -61,7 +61,7 @@
             ]
          },
          "apply":{
-            "model":"impressivelogic:block/network_cable_side1",
+            "model":"impressivelogic:block/cable/network_cable_side1",
             "y":270
          }
       }
