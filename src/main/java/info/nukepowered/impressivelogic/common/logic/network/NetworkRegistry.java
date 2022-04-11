@@ -1,6 +1,7 @@
 package info.nukepowered.impressivelogic.common.logic.network;
 
 import info.nukepowered.impressivelogic.api.logic.INetworkPart;
+import info.nukepowered.impressivelogic.common.util.NetworkUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
@@ -19,7 +20,7 @@ import java.util.*;
  *
  * @author TheDarkDnKTv
  */
-public class LogicNetworkRegistry {
+public class NetworkRegistry {
 
     public static final Marker NETWORK_MARKER = MarkerFactory.getMarker("LogicNetwork");
 
@@ -44,7 +45,7 @@ public class LogicNetworkRegistry {
         final var dimension = level.dimension().location();
         final var networks = REGISTRY.getOrDefault(dimension, new HashMap<>());
 
-        NetworkIO.readNetworks(level, networks::put);
+        NetworkUtils.readNetworks(level, networks::put);
         REGISTRY.put(dimension, networks);
     }
 
@@ -52,7 +53,7 @@ public class LogicNetworkRegistry {
     public void onWorldUnload(final WorldEvent.Unload event) {
         final var dimension = ((Level) event.getWorld()).dimension().location();
         var networks = REGISTRY.getOrDefault(dimension, new HashMap<>());
-        NetworkIO.writeNetworks(dimension, networks.values());
+        NetworkUtils.writeNetworks(dimension, networks.values());
     }
 
     public static void register(ResourceLocation dimensionId, BlockPos pos, INetworkPart part) {

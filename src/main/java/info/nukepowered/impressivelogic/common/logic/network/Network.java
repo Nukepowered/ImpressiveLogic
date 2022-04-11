@@ -30,7 +30,7 @@ public class Network {
 
     public boolean registerPart(BlockPos pos, INetworkPart part) {
         if (entities.put(pos, part) != null) {
-            LOGGER.error(LogicNetworkRegistry.NETWORK_MARKER,
+            LOGGER.error(NetworkRegistry.NETWORK_MARKER,
                     "Re-registering of part detected, it is an error!", new Exception());
         }
 

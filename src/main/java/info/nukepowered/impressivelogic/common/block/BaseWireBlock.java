@@ -1,7 +1,7 @@
 package info.nukepowered.impressivelogic.common.block;
 
 import info.nukepowered.impressivelogic.api.logic.INetworkCable;
-import info.nukepowered.impressivelogic.common.logic.network.LogicNetworkRegistry;
+import info.nukepowered.impressivelogic.common.logic.network.NetworkRegistry;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -61,7 +61,7 @@ public abstract class BaseWireBlock extends Block implements INetworkCable {
 		final var component = new TextComponent("=== Network information ===\n")
 				.setStyle(style);
 
-		var network = LogicNetworkRegistry.getNetwork(level.dimension().location(), pos);
+		var network = NetworkRegistry.getNetwork(level.dimension().location(), pos);
 		if (network != null) {
 			var info = new TextComponent("");
 			var entities = network.getEntities();
@@ -79,14 +79,14 @@ public abstract class BaseWireBlock extends Block implements INetworkCable {
 	@Override
 	public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placedBy, ItemStack stack) {
 		if (!level.isClientSide) {
-			LogicNetworkRegistry.register(level.dimension().location(), pos, this);
+			NetworkRegistry.register(level.dimension().location(), pos, this);
 		}
 	}
 
 	@Override
 	public void destroy(LevelAccessor levelAccessor, BlockPos pos, BlockState state) {
 		if (!levelAccessor.isClientSide()) {
-			LogicNetworkRegistry.unregister(((Level) levelAccessor).dimension().location(), pos);
+			NetworkRegistry.unregister(((Level) levelAccessor).dimension().location(), pos);
 		}
 	}
 

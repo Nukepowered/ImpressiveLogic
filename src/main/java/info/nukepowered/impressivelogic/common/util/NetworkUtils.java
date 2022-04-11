@@ -1,5 +1,7 @@
-package info.nukepowered.impressivelogic.common.logic.network;
+package info.nukepowered.impressivelogic.common.util;
 
+import info.nukepowered.impressivelogic.common.logic.network.Network;
+import info.nukepowered.impressivelogic.common.logic.network.NetworkRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -20,12 +22,12 @@ import java.util.function.BiConsumer;
 import static java.nio.file.StandardOpenOption.*;
 import static info.nukepowered.impressivelogic.ImpressiveLogic.LOGGER;
 
-/**
+/*
  * Copyright (c) Nukepowered 2022.
  *
  * @author TheDarkDnKTv
  */
-public class NetworkIO {
+public class NetworkUtils {
 
     public static final LevelResource DATA_PATH = new LevelResource("data/impressivelogic");
 
@@ -43,7 +45,7 @@ public class NetworkIO {
                 NbtIo.writeCompressed(tag, output);
             }
         } catch (Exception e) {
-            LOGGER.error(LogicNetworkRegistry.NETWORK_MARKER, "Unable to save networks!", e);
+            LOGGER.error(NetworkRegistry.NETWORK_MARKER, "Unable to save networks!", e);
         }
     }
 
@@ -64,7 +66,7 @@ public class NetworkIO {
                 }
             }
         } catch (Exception e) {
-            LOGGER.error(LogicNetworkRegistry.NETWORK_MARKER, "Unable to read saved networks!", e);
+            LOGGER.error(NetworkRegistry.NETWORK_MARKER, "Unable to read saved networks!", e);
         }
     }
 
