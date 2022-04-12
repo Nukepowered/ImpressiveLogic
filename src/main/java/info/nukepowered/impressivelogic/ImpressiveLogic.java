@@ -1,6 +1,7 @@
 package info.nukepowered.impressivelogic;
 
 import info.nukepowered.impressivelogic.common.client.ImpressiveLogicClient;
+import info.nukepowered.impressivelogic.common.logic.network.execution.NetworkExecutionManager;
 import info.nukepowered.impressivelogic.common.logic.network.NetworkRegistry;
 import info.nukepowered.impressivelogic.common.registry.BlockRegistry;
 import info.nukepowered.impressivelogic.common.registry.ItemRegistry;
@@ -35,6 +36,7 @@ public class ImpressiveLogic {
 		}
 
 		MinecraftForge.EVENT_BUS.register(new NetworkRegistry());
+		MinecraftForge.EVENT_BUS.register(NetworkExecutionManager.class);
 
 		BlockRegistry.init();
 		ItemRegistry.init();
