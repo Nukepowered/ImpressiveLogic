@@ -1,6 +1,7 @@
 package info.nukepowered.impressivelogic.api.logic;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 
@@ -18,4 +19,12 @@ public interface INetworkPart {
         return null;
     }
 
+    /**
+     * @param level
+     * @param pos of this part
+     * @param from
+     */
+    default boolean acceptConnection(Level level, BlockPos pos, Direction from) {
+        return true;
+    }
 }

@@ -12,6 +12,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
@@ -43,6 +44,10 @@ public class Network {
 
     public Set<BlockPos> getEntities() {
         return Collections.unmodifiableSet(entities.keySet());
+    }
+
+    public Optional<INetworkPart> findEntity(BlockPos pos) {
+        return Optional.ofNullable(entities.get(pos));
     }
 
     public CompoundTag writeToNBT() {

@@ -1,6 +1,7 @@
 package info.nukepowered.impressivelogic.common.block;
 
 import info.nukepowered.impressivelogic.api.logic.INetworkCable;
+import info.nukepowered.impressivelogic.common.logic.network.Network;
 import info.nukepowered.impressivelogic.common.logic.network.NetworkRegistry;
 
 import net.minecraft.ChatFormatting;
@@ -24,12 +25,19 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+
 /**
  * Copyright (c) Nukepowered 2022.
  *
  * @author TheDarkDnKTv
  */
 public abstract class BaseWireBlock extends Block implements INetworkCable {
+
+	public static final Direction[] ACCESSIBLE = {
+			Direction.EAST, Direction.NORTH, Direction.WEST, Direction.SOUTH
+	};
 
 	protected final static BooleanProperty EAST = BooleanProperty.create("east");
 	protected final static BooleanProperty WEST = BooleanProperty.create("west");
@@ -61,10 +69,10 @@ public abstract class BaseWireBlock extends Block implements INetworkCable {
 		final var component = new TextComponent("=== Network information ===\n")
 				.setStyle(style);
 
-		var network = NetworkRegistry.getNetwork(level.dimension().location(), pos);
-		if (network != null) {
+		var opt = NetworkRegistry.findNetwork(level.dimension().location(), pos);
+		if (opt.isPresent()) {
 			var info = new TextComponent("");
-			var entities = network.getEntities();
+			var entities = opt.get().getEntities();
 
 			info.append(String.format(" size: %d\n", entities.size()));
 			info.append(String.format(" entities: %s\n", entities));
@@ -77,9 +85,30 @@ public abstract class BaseWireBlock extends Block implements INetworkCable {
 	}
 
 	@Override
-	public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placedBy, ItemStack stack) {
+	public void onPlace(BlockState state, Level level, BlockPos pos, BlockState previousState, boolean bool) {
 		if (!level.isClientSide) {
-			NetworkRegistry.register(level.dimension().location(), pos, this);
+			var dimension = level.dimension().location();
+			var networksJoined = new HashSet<Network>();
+
+			for (var dir : ACCESSIBLE) {
+				var opt = NetworkRegistry.findNetwork(dimension, pos.relative(dir));
+				if (opt.isPresent()) {
+					var network = opt.get();
+					if (networksJoined.contains(network)) {
+						continue;
+					}
+
+					if (NetworkRegistry.joinNetwork(level, network, pos, dir, this)) {
+						networksJoined.add(network);
+					}
+				}
+			}
+
+			if (networksJoined.isEmpty()) {
+				NetworkRegistry.register(level.dimension().location(), pos, this);
+			} else {
+				NetworkRegistry.finishNetworkJoin(networksJoined);
+			}
 		}
 	}
 
