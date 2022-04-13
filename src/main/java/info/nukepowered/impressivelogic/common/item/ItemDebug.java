@@ -1,6 +1,7 @@
 package info.nukepowered.impressivelogic.common.item;
 
 import info.nukepowered.impressivelogic.api.logic.INetworkPart;
+import info.nukepowered.impressivelogic.common.logic.network.LogicNetManager;
 import info.nukepowered.impressivelogic.common.logic.network.NetworkRegistry;
 import info.nukepowered.impressivelogic.common.registry.ImpressiveLogicTabs;
 import net.minecraft.ChatFormatting;
@@ -61,7 +62,8 @@ public class ItemDebug extends Item {
         final var stack = player.getItemInHand(hand);
 
         if (player.isCrouching() && !level.isClientSide) {
-            final var networks = NetworkRegistry.getNetworksForLevel(level.dimension().location());
+            final var networks = LogicNetManager.getRegistry()
+                    .getNetworksForLevel(level.dimension().location());
             final var component = new TextComponent("=== Networks ===\n")
                     .withStyle(ChatFormatting.GOLD);
             component.append(new TextComponent(" amount: " + networks.size() + "\n")

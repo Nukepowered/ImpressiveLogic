@@ -1,17 +1,10 @@
 package info.nukepowered.impressivelogic.common.logic.network;
 
-import info.nukepowered.impressivelogic.api.logic.INetworkPart;
-import info.nukepowered.impressivelogic.common.logic.network.execution.NetworkExecutionManager;
-import info.nukepowered.impressivelogic.common.logic.network.execution.tasks.NetCompileTask;
 import info.nukepowered.impressivelogic.common.util.NetworkUtils;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
-
-import net.minecraftforge.event.server.ServerAboutToStartEvent;
-import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
@@ -19,8 +12,8 @@ import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
 import java.util.*;
-
-import static info.nukepowered.impressivelogic.ImpressiveLogic.LOGGER;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Copyright (c) Nukepowered 2022.
@@ -34,23 +27,17 @@ public class NetworkRegistry {
     /**
      * World registry name to network mapping
      */
-    private static Map<ResourceLocation, Map<BlockPos, Network>> REGISTRY;
+    private final ConcurrentMap<ResourceLocation, ConcurrentMap<BlockPos, Network>> REGISTRY;
 
-    @SubscribeEvent
-    public void onServerAboutToStop(final ServerStoppedEvent event) {
-        REGISTRY = null;
-    }
-
-    @SubscribeEvent
-    public void onServerAboutToStart(final ServerAboutToStartEvent event) {
-        REGISTRY = new HashMap<>();
+    NetworkRegistry() {
+        this.REGISTRY = new ConcurrentHashMap<>();
     }
 
     @SubscribeEvent
     public void onWorldLoading(final WorldEvent.Load event) {
         final var level = (Level) event.getWorld();
         final var dimension = level.dimension().location();
-        final var networks = REGISTRY.getOrDefault(dimension, new HashMap<>());
+        final var networks = this.getWorldRegistry(dimension);
 
         NetworkUtils.readNetworks(level, networks::put);
         REGISTRY.put(dimension, networks);
@@ -59,79 +46,72 @@ public class NetworkRegistry {
     @SubscribeEvent
     public void onWorldUnload(final WorldEvent.Unload event) {
         final var dimension = ((Level) event.getWorld()).dimension().location();
-        var networks = REGISTRY.getOrDefault(dimension, new HashMap<>());
+        var networks = this.getWorldRegistry(dimension);
         NetworkUtils.writeNetworks(dimension, new HashSet<>(networks.values()));
     }
 
-    public static void register(ResourceLocation dimensionId, BlockPos pos, INetworkPart part) {
-        var map = REGISTRY.getOrDefault(dimensionId, new HashMap<>());
-        var network = map.getOrDefault(pos, new Network());
-        network.registerPart(pos, part);
-        map.put(pos, network);
-        REGISTRY.putIfAbsent(dimensionId, map);
+    /**
+     * Will register new network mapping for selected dimension
+     * Network Part Pos -> Network
+     *
+     * @param dimensionId
+     * @param netPosition position of network first network element
+     * @return new network object
+     */
+    public Network registerNewNetwork(ResourceLocation dimensionId, BlockPos netPosition) {
+        var worldRegistry = this.getWorldRegistry(dimensionId);
+        var network = new Network();
+        worldRegistry.put(netPosition, network);
+        REGISTRY.putIfAbsent(dimensionId, worldRegistry);
+        return network;
     }
 
-    public static void unregister(ResourceLocation dimensionId, BlockPos pos) {
-        var networks = REGISTRY.get(dimensionId);
-        if (networks != null) {
-            var network = networks.remove(pos);
-            if (network != null) {
-                network.unregisterPart(pos);
-            }
+    /**
+     * Associates given part position with network in choosen dimension
+     *
+     * @param dimensionId
+     * @param network
+     * @param partPosition
+     */
+    public void registerPartMapping(ResourceLocation dimensionId, Network network, BlockPos partPosition) {
+        var worldRegistry = this.getWorldRegistry(dimensionId);
+        worldRegistry.put(partPosition, network);
+        REGISTRY.putIfAbsent(dimensionId, worldRegistry);
+    }
+
+    public void updateMappings(ResourceLocation dimensionId, Network network, Collection<BlockPos> positions) {
+        var worldRegistry = this.getWorldRegistry(dimensionId);
+        for (var pos : positions) {
+            worldRegistry.replace(pos, network);
         }
     }
 
     /**
-     * @param network to join
-     * @param partPos position of requester part
-     * @param from side of part we are trying to access
-     * @param part requester part
-     * @return true if joined to network
+     * Removing network association of selected part position
+     *
+     * @param dimensionId
+     * @param partPosition
      */
-    public static boolean joinNetwork(Level level, Network network, BlockPos partPos, Direction from, INetworkPart part) {
-        if (!network.getEntities().contains(partPos)) {
-            var netPos = partPos.relative(from);
-            var netDir = from.getOpposite();
-            var partOptional = network.findEntity(netPos);
-
-            if (partOptional.isPresent()) {
-                var netPart = partOptional.get();
-                if (netPart.acceptConnection(level, netPos, netDir)) {
-                    if (network.registerPart(partPos, part)) {
-                        var dimension = level.dimension().location();
-                        var map = REGISTRY.getOrDefault(dimension, new HashMap<>());
-                        map.put(partPos, network);
-                        REGISTRY.put(dimension, map);
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
-
-    public static void finishNetworkJoin(Collection<Network> networks) {
-        var nets = new ArrayList<>(networks);
-
-        if (nets.size() > 1) {
-            // TODO
-            LOGGER.info(NETWORK_MARKER, "Network join for more than 1 is not implemented yet {}", networks);
-        } else {
-            NetworkExecutionManager.instance()
-                    .submit(new NetCompileTask(nets.get(0)));
+    public void unregisterPartMapping(ResourceLocation dimensionId, BlockPos partPosition) {
+        var networks = this.getWorldRegistry(dimensionId);
+        if (networks != null) {
+            networks.remove(partPosition);
         }
     }
 
-    public static Optional<Network> findNetwork(ResourceLocation dimension, BlockPos pos) {
+    public Optional<Network> findNetwork(ResourceLocation dimension, BlockPos pos) {
         return Optional.ofNullable(REGISTRY.get(dimension))
                 .map(map -> map.get(pos));
     }
 
-    public static Set<Network> getNetworksForLevel(ResourceLocation dimension) {
+    public Set<Network> getNetworksForLevel(ResourceLocation dimension) {
         return Optional.ofNullable(REGISTRY.get(dimension))
                 .map(Map::values)
                 .map(Set::copyOf)
                 .orElseGet(HashSet::new);
+    }
+
+    private ConcurrentMap<BlockPos, Network> getWorldRegistry(ResourceLocation dimensionId) {
+        return REGISTRY.getOrDefault(dimensionId, new ConcurrentHashMap<>());
     }
 }

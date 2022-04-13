@@ -1,8 +1,7 @@
 package info.nukepowered.impressivelogic.common.block;
 
 import info.nukepowered.impressivelogic.api.logic.INetworkCable;
-import info.nukepowered.impressivelogic.common.logic.network.Network;
-import info.nukepowered.impressivelogic.common.logic.network.NetworkRegistry;
+import info.nukepowered.impressivelogic.common.logic.network.LogicNetManager;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -10,11 +9,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextComponent;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -23,21 +19,19 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.Material;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashSet;
+import javax.annotation.Nullable;
+import java.util.Collection;
+import java.util.Set;
 
 /**
  * Copyright (c) Nukepowered 2022.
  *
  * @author TheDarkDnKTv
  */
-public abstract class BaseWireBlock extends Block implements INetworkCable {
+public abstract class BaseWireBlock extends AbstractNetworkBlock implements INetworkCable {
 
-	public static final Direction[] ACCESSIBLE = {
-			Direction.EAST, Direction.NORTH, Direction.WEST, Direction.SOUTH
-	};
+	protected final static Set<Direction> supportedDirections = Set.of(Direction.EAST, Direction.NORTH, Direction.WEST, Direction.SOUTH);
 
 	protected final static BooleanProperty EAST = BooleanProperty.create("east");
 	protected final static BooleanProperty WEST = BooleanProperty.create("west");
@@ -61,6 +55,11 @@ public abstract class BaseWireBlock extends Block implements INetworkCable {
 				.setValue(SOUTH, false);
 	}
 
+	@Override
+	public Collection<Direction> getConnectableSides(Level level, BlockPos pos) {
+		return supportedDirections;
+	}
+
 	@Nullable
 	@Override
 	public Component provideDebugInformation(Level level, BlockPos pos) {
@@ -69,7 +68,7 @@ public abstract class BaseWireBlock extends Block implements INetworkCable {
 		final var component = new TextComponent("=== Network information ===\n")
 				.setStyle(style);
 
-		var opt = NetworkRegistry.findNetwork(level.dimension().location(), pos);
+		var opt = LogicNetManager.findNetwork(level, pos);
 		if (opt.isPresent()) {
 			var info = new TextComponent("");
 			var entities = opt.get().getEntities();
@@ -82,41 +81,6 @@ public abstract class BaseWireBlock extends Block implements INetworkCable {
 		}
 
 		return component.append(new TextComponent("===========================").setStyle(style));
-	}
-
-	@Override
-	public void onPlace(BlockState state, Level level, BlockPos pos, BlockState previousState, boolean bool) {
-		if (!level.isClientSide) {
-			var dimension = level.dimension().location();
-			var networksJoined = new HashSet<Network>();
-
-			for (var dir : ACCESSIBLE) {
-				var opt = NetworkRegistry.findNetwork(dimension, pos.relative(dir));
-				if (opt.isPresent()) {
-					var network = opt.get();
-					if (networksJoined.contains(network)) {
-						continue;
-					}
-
-					if (NetworkRegistry.joinNetwork(level, network, pos, dir, this)) {
-						networksJoined.add(network);
-					}
-				}
-			}
-
-			if (networksJoined.isEmpty()) {
-				NetworkRegistry.register(level.dimension().location(), pos, this);
-			} else {
-				NetworkRegistry.finishNetworkJoin(networksJoined);
-			}
-		}
-	}
-
-	@Override
-	public void destroy(LevelAccessor levelAccessor, BlockPos pos, BlockState state) {
-		if (!levelAccessor.isClientSide()) {
-			NetworkRegistry.unregister(((Level) levelAccessor).dimension().location(), pos);
-		}
 	}
 
 	@Override
@@ -133,11 +97,13 @@ public abstract class BaseWireBlock extends Block implements INetworkCable {
 	}
 
 	@Override
-	public void neighborChanged(BlockState state, Level world, BlockPos pos, Block updateBlock, BlockPos updatePos, boolean bool) {
+	public void neighborChanged(BlockState thisState, Level world, BlockPos thisPos, Block updateBlock, BlockPos updatePos, boolean bool) {
+		super.neighborChanged(thisState, world, thisPos, updateBlock, updatePos, bool);
+
 		if (!world.isClientSide) {
-			if (!state.canSurvive(world, pos)) {
-				dropResources(state, world, pos);
-				world.removeBlock(pos, false);
+			if (!thisState.canSurvive(world, thisPos)) {
+				dropResources(thisState, world, thisPos);
+				world.removeBlock(thisPos, false);
 			}
 		}
 	}

@@ -1,15 +1,17 @@
 package info.nukepowered.impressivelogic;
 
 import info.nukepowered.impressivelogic.common.client.ImpressiveLogicClient;
+import info.nukepowered.impressivelogic.common.logic.network.LogicNetManager;
 import info.nukepowered.impressivelogic.common.logic.network.execution.NetworkExecutionManager;
-import info.nukepowered.impressivelogic.common.logic.network.NetworkRegistry;
 import info.nukepowered.impressivelogic.common.registry.BlockRegistry;
 import info.nukepowered.impressivelogic.common.registry.ItemRegistry;
+
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
@@ -35,7 +37,7 @@ public class ImpressiveLogic {
 			fmlBus.register(ImpressiveLogicClient.class);
 		}
 
-		MinecraftForge.EVENT_BUS.register(new NetworkRegistry());
+		MinecraftForge.EVENT_BUS.register(LogicNetManager.class);
 		MinecraftForge.EVENT_BUS.register(NetworkExecutionManager.class);
 
 		BlockRegistry.init();
