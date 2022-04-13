@@ -1,8 +1,10 @@
 package info.nukepowered.impressivelogic.common.util;
 
+import info.nukepowered.impressivelogic.common.logic.network.LogicNetManager;
 import info.nukepowered.impressivelogic.common.logic.network.Network;
 import info.nukepowered.impressivelogic.common.logic.network.NetworkRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtIo;
@@ -17,6 +19,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.BiConsumer;
 
 import static java.nio.file.StandardOpenOption.*;
@@ -68,6 +72,19 @@ public class NetworkUtils {
         } catch (Exception e) {
             LOGGER.error(NetworkRegistry.NETWORK_MARKER, "Unable to read saved networks!", e);
         }
+    }
+
+    public static Set<Direction> getConnectedDirections(Network network, BlockPos pos, Collection<Direction> connectableSides) {
+        var sides = new HashSet<>(connectableSides);
+        var result = new HashSet<Direction>();
+
+        for (var side : sides) {
+            if (network.findEntity(pos.relative(side)).isPresent()) {
+                result.add(side);
+            }
+        }
+
+        return result;
     }
 
     private static CompoundTag createOrReadFile(Path path) throws IOException {

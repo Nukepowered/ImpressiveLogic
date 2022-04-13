@@ -66,7 +66,9 @@ public abstract class AbstractNetworkBlock extends Block implements INetworkPart
 
         var from = Direction.fromNormal(updatePos.subtract(thisPos));
         if (acceptConnection(world, thisPos, from) && updateBlock instanceof INetworkPart) {
-            LogicNetManager.validateNetwork(world, thisPos, from);
+            if (world.getBlockState(updatePos).getBlock() != updateBlock) {
+                LogicNetManager.validateNetwork(world, thisPos, from);
+            }
         }
     }
 }
