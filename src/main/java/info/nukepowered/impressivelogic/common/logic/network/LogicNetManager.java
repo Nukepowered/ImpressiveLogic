@@ -3,6 +3,7 @@ package info.nukepowered.impressivelogic.common.logic.network;
 import info.nukepowered.impressivelogic.api.logic.INetworkPart;
 import info.nukepowered.impressivelogic.common.logic.network.execution.NetworkExecutionManager;
 import info.nukepowered.impressivelogic.common.logic.network.execution.tasks.NetCompileTask;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.BlockPos.MutableBlockPos;
 import net.minecraft.core.Direction;
@@ -11,10 +12,10 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.server.ServerAboutToStartEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
 
 /**
  * Copyright (c) Nukepowered 2022.
@@ -39,6 +40,7 @@ public class LogicNetManager {
     public static Network registerNewNetwork(Level level, BlockPos partPos, INetworkPart part) {
         final var network = NETWORKS.registerNewNetwork(level.dimension().location(), partPos);
         network.registerPart(partPos, part);
+        // Recompile will not being scheduled since it is new net with only one member
         return network;
     }
 
@@ -81,6 +83,16 @@ public class LogicNetManager {
         NetworkExecutionManager.instance().submit(new NetCompileTask(first));
     }
 
+    /**
+     * Removes part from registry, and from network
+     *
+     * This method is not validate state, will just delete part from registry.
+     * If validation is required, call {@link #validateNetwork(Level, BlockPos, Direction)} right after
+     * @see info.nukepowered.impressivelogic.common.block.AbstractNetworkBlock
+     *
+     * @param level
+     * @param pos
+     */
     public static void removeFromNetwork(Level level, BlockPos pos) {
         var opt = findNetwork(level, pos);
         if (opt.isPresent()) {
@@ -90,19 +102,33 @@ public class LogicNetManager {
         }
     }
 
+    /**
+     * Will check network integrity, in case of network changes will schedule recompile.
+     *
+     * Should be called on neighbour update, in case of part was removed
+     *
+     * @param level
+     * @param updatedBlock block that calling this validation
+     * @param updatedFrom Direction update triggered from (will not check this direction)
+     */
     public static void validateNetwork(Level level, BlockPos updatedBlock, Direction updatedFrom) {
+        // If throws NPE here - you are using this method wrong
+        // It should be called only if Part of network notice update around
         var currentNetwork = findNetwork(level, updatedBlock).get();
         var part = currentNetwork.findEntity(updatedBlock).get();
         final var initSides = new HashSet<>(part.getConnectableSides(level, updatedBlock));
 
+        // Will not check for side update came from, block removal expected
         initSides.remove(updatedFrom);
 
-        Deque<Pair<Direction, Queue<Direction>>> moveQueue = new LinkedList<>();
+        // Direction to come back - Sides not visited
+        Deque<Pair<Direction, Queue<Direction>>> moveStack = new LinkedList<>();
         Queue<Direction> sides = new LinkedList<>(initSides);
-        var parts = new HashSet<BlockPos>();
-        var visited = new HashSet<BlockPos>();
+        var parts = new HashSet<BlockPos>(); // found parts
+        var visited = new HashSet<BlockPos>(); // visited blocks
         var currentPos = new MutableBlockPos().set(updatedBlock);
 
+        // Current block must be part of this network
         parts.add(updatedBlock);
 
         main:
@@ -112,31 +138,36 @@ public class LogicNetManager {
                 currentPos.move(side);
                 if (!visited.contains(currentPos)) {
                     var opt = currentNetwork.findEntity(currentPos);
-                    if (opt.isPresent()) {
+                    // If network part is still there, and it's accepting connection - add
+                    if (opt.isPresent() && opt.get().acceptConnection(level, currentPos, side.getOpposite())) {
                         parts.add(currentPos.immutable());
-                        moveQueue.add(Pair.of(side.getOpposite(), sides));
+                        moveStack.add(Pair.of(side.getOpposite(), sides)); // Need to check it neighbours as well
                         sides = new LinkedList<>(opt.get().getConnectableSides(level, currentPos));
-                        sides.remove(side.getOpposite());
+                        sides.remove(side.getOpposite()); // Do not check side we came from
 
                         continue main;
                     }
                 }
 
+                // Since we did not find anything, come back
                 currentPos.move(side.getOpposite());
                 visited.add(currentPos);
             }
-            if (moveQueue.isEmpty()) {
+            if (moveStack.isEmpty()) {
                 break;
             } else {
-                var pair = moveQueue.pollLast();
+                // Come to old position
+                var pair = moveStack.pollLast();
                 sides = pair.getValue();
                 currentPos.move(pair.getKey());
             }
         }
 
+        // In case network changed, pull all parts from network and create new
         if (!parts.containsAll(currentNetwork.getEntities())) {
             var newNetwork = currentNetwork.split(parts);
             NETWORKS.updateMappings(level.dimension().location(), newNetwork, parts);
+            NetworkExecutionManager.instance().submit(new NetCompileTask(newNetwork));
         }
     }
 

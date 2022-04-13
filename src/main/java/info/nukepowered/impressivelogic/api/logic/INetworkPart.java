@@ -30,6 +30,13 @@ public interface INetworkPart {
     }
 
     /**
+     * Override this method if this block a container of actual part
+     */
+    default INetworkPart getPart() {
+        return this;
+    }
+
+    /**
      * Will search for networks on these sides.
      *
      * @return iterable of directions is supported for network connections
@@ -37,4 +44,16 @@ public interface INetworkPart {
      * @param pos
      */
     Collection<Direction> getConnectableSides(Level level, BlockPos pos);
+
+    PartType getType();
+
+    enum PartType {
+        /**
+         * Should be instance of {@link INetworkCable}
+         */
+        CONNECTOR,
+        STATEFUL,
+        STATELESS,
+        TRIGGER;
+    }
 }

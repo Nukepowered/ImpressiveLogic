@@ -3,10 +3,10 @@ package info.nukepowered.impressivelogic.common.block;
 import info.nukepowered.impressivelogic.api.logic.INetworkPart;
 import info.nukepowered.impressivelogic.common.logic.network.LogicNetManager;
 import info.nukepowered.impressivelogic.common.logic.network.Network;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -27,8 +27,9 @@ public abstract class AbstractNetworkBlock extends Block implements INetworkPart
     public void onPlace(BlockState state, Level level, BlockPos pos, BlockState previousState, boolean bool) {
         if (!level.isClientSide) {
             var networksJoined = new HashSet<Network>();
+            var part = this.getPart();
 
-            for (var dir : getConnectableSides(level, pos)) {
+            for (var dir : part.getConnectableSides(level, pos)) {
                 var opt = LogicNetManager.findNetwork(level, pos.relative(dir));
                 if (opt.isPresent()) {
                     var network = opt.get();
@@ -36,7 +37,7 @@ public abstract class AbstractNetworkBlock extends Block implements INetworkPart
                         continue;
                     }
 
-                    if (LogicNetManager.joinNetwork(level, network, pos, dir, this)) {
+                    if (LogicNetManager.joinNetwork(level, network, pos, dir, part)) {
                         networksJoined.add(network);
                     }
                 }
@@ -44,7 +45,7 @@ public abstract class AbstractNetworkBlock extends Block implements INetworkPart
 
             // Register new network if no connections found
             if (networksJoined.isEmpty()) {
-                LogicNetManager.registerNewNetwork(level, pos, this);
+                LogicNetManager.registerNewNetwork(level, pos, part);
             } else {
                 LogicNetManager.mergeNetworks(level, networksJoined);
             }
@@ -52,9 +53,10 @@ public abstract class AbstractNetworkBlock extends Block implements INetworkPart
     }
 
     @Override
-    public void destroy(LevelAccessor levelAccessor, BlockPos pos, BlockState state) {
-        if (!levelAccessor.isClientSide()) {
-            LogicNetManager.removeFromNetwork((Level) levelAccessor, pos);
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean bool) {
+        super.onRemove(state, level, pos, newState, bool);
+        if (!level.isClientSide) {
+            LogicNetManager.removeFromNetwork(level, pos);
         }
     }
 
