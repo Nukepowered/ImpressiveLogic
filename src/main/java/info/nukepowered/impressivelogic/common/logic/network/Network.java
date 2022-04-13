@@ -11,10 +11,9 @@ import net.minecraft.world.level.LevelAccessor;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 import static info.nukepowered.impressivelogic.ImpressiveLogic.LOGGER;
 
@@ -42,12 +41,29 @@ public class Network {
         entities.remove(pos);
     }
 
+    public void merge(Network other) {
+        this.entities.putAll(other.entities);
+    }
+
+    public Network split(Collection<BlockPos> parts) {
+        var newNet = new Network();
+        entities.entrySet().stream()
+                .filter(e -> parts.contains(e.getKey()))
+                .forEach(e -> newNet.entities.put(e.getKey(), e.getValue()));
+        entities.keySet().removeAll(parts);
+        return newNet;
+    }
+
     public Set<BlockPos> getEntities() {
         return Collections.unmodifiableSet(entities.keySet());
     }
 
     public Optional<INetworkPart> findEntity(BlockPos pos) {
         return Optional.ofNullable(entities.get(pos));
+    }
+
+    public boolean isEmpty() {
+        return this.entities.isEmpty();
     }
 
     public CompoundTag writeToNBT() {

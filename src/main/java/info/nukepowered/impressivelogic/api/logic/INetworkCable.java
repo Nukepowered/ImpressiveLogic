@@ -6,4 +6,9 @@ package info.nukepowered.impressivelogic.api.logic;
  * @author TheDarkDnKTv
  */
 public interface INetworkCable extends INetworkPart {
+
+    @Override
+    default PartType getType() {
+        return PartType.CONNECTOR;
+    }
 }
