@@ -9,6 +9,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -85,6 +86,14 @@ public class NetworkUtils {
         }
 
         return result;
+    }
+
+    public static Level getLevel(ResourceLocation dimensionId) {
+        var server = ServerLifecycleHooks.getCurrentServer();
+        var resourceKey = server.levelKeys().stream()
+                .filter(key -> key.getRegistryName().equals(dimensionId))
+                .findFirst();
+        return server.getLevel(resourceKey.get());
     }
 
     private static CompoundTag createOrReadFile(Path path) throws IOException {

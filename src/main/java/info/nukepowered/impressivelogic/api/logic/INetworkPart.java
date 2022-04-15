@@ -54,6 +54,6 @@ public interface INetworkPart {
         CONNECTOR,
         STATEFUL,
         STATELESS,
-        TRIGGER;
+        IO;
     }
 }

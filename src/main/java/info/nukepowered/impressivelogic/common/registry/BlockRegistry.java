@@ -1,6 +1,7 @@
 package info.nukepowered.impressivelogic.common.registry;
 
 import info.nukepowered.impressivelogic.ImpressiveLogic;
+import info.nukepowered.impressivelogic.common.block.io.LogicLampBlock;
 import info.nukepowered.impressivelogic.common.block.wire.NetworkCableBlock;
 
 import net.minecraft.world.item.BlockItem;
@@ -28,6 +29,7 @@ public class BlockRegistry {
 	}
 	
 	public static final RegistryObject<NetworkCableBlock> NETWORK_CABLE = registerBlock("network_cable", NetworkCableBlock::new, ImpressiveLogicTabs.MAIN);
+	public static final RegistryObject<LogicLampBlock> LOGIC_LAMP = registerBlock("logic_lamp", LogicLampBlock::new, ImpressiveLogicTabs.MAIN);
 
 	public static <T extends Block> RegistryObject<T> registerBlock(String name, Supplier<T> supplier) {
 		return registerBlock(name, supplier, null);
