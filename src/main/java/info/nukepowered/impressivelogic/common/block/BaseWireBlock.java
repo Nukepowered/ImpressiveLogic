@@ -50,9 +50,9 @@ public abstract class BaseWireBlock extends AbstractNetworkBlock implements INet
 
 	public BaseWireBlock(Properties props) {
 		super(props.noCollission().instabreak());
-		this.registerDefaultState(this.registerDefaultBlockState());
 	}
 
+	@Override
 	protected BlockState registerDefaultBlockState() {
 		var stateDef = this.stateDefinition.any();
 		for (var state : DIRECTION_STATES.values()) {

@@ -24,6 +24,6 @@ public class NetCompileTask implements Runnable {
 
     @Override
     public void run() {
-        LOGGER.info(COMPILE_MARKER, "Network compile execution for {}", suspect);
+        LOGGER.debug(COMPILE_MARKER, "Network compile execution for {}", suspect);
     }
 }

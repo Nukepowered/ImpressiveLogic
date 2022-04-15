@@ -21,7 +21,10 @@ public abstract class AbstractNetworkBlock extends Block implements INetworkPart
 
     public AbstractNetworkBlock(Properties properties) {
         super(properties);
+        this.registerDefaultState(this.registerDefaultBlockState());
     }
+
+    protected abstract BlockState registerDefaultBlockState();
 
     @Override
     public void onPlace(BlockState state, Level level, BlockPos pos, BlockState previousState, boolean bool) {
