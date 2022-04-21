@@ -9,6 +9,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
 
 import java.util.HashSet;
 
@@ -26,11 +27,13 @@ public abstract class AbstractNetworkBlock extends Block implements INetworkPart
 
     protected abstract BlockState registerDefaultBlockState();
 
+    protected abstract void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder);
+
     @Override
     public void onPlace(BlockState state, Level level, BlockPos pos, BlockState previousState, boolean bool) {
         if (!level.isClientSide) {
             var networksJoined = new HashSet<Network>();
-            var part = this.getPart();
+            var part = this.getPart(level, pos);
 
             for (var dir : part.getConnectableSides(level, pos)) {
                 var opt = LogicNetManager.findNetwork(level, pos.relative(dir));

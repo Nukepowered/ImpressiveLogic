@@ -32,7 +32,7 @@ public interface INetworkPart {
     /**
      * Override this method if this block a container of actual part
      */
-    default INetworkPart getPart() {
+    default INetworkPart getPart(Level level, BlockPos pos) {
         return this;
     }
 
@@ -45,7 +45,7 @@ public interface INetworkPart {
      */
     Collection<Direction> getConnectableSides(Level level, BlockPos pos);
 
-    PartType getType();
+    PartType getPartType();
 
     enum PartType {
         /**
