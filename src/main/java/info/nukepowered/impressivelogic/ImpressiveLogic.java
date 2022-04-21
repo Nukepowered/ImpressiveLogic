@@ -6,6 +6,7 @@ import info.nukepowered.impressivelogic.common.logic.network.execution.NetworkEx
 import info.nukepowered.impressivelogic.common.registry.BlockRegistry;
 import info.nukepowered.impressivelogic.common.registry.ItemRegistry;
 
+import info.nukepowered.impressivelogic.common.registry.TileEntityRegistry;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -42,6 +43,7 @@ public class ImpressiveLogic {
 
 		BlockRegistry.init();
 		ItemRegistry.init();
+		TileEntityRegistry.init();
 	}
 
 	private void setupCommon(final FMLCommonSetupEvent event) {

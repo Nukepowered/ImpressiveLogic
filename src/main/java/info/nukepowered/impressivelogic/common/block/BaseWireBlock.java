@@ -2,9 +2,9 @@ package info.nukepowered.impressivelogic.common.block;
 
 import info.nukepowered.impressivelogic.api.logic.INetworkCable;
 import info.nukepowered.impressivelogic.common.logic.network.LogicNetManager;
-
 import info.nukepowered.impressivelogic.common.logic.network.Network;
 import info.nukepowered.impressivelogic.common.util.NetworkUtils;
+
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -18,7 +18,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition.Builder;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.levelgen.structure.templatesystem.BlockStateMatchTest;
 import net.minecraft.world.level.material.Material;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -30,8 +29,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static info.nukepowered.impressivelogic.ImpressiveLogic.LOGGER;
 import static info.nukepowered.impressivelogic.ImpressiveLogic.COMMON_MARKER;
+import static info.nukepowered.impressivelogic.ImpressiveLogic.LOGGER;
 
 /**
  * Copyright (c) Nukepowered 2022.
@@ -98,6 +97,17 @@ public abstract class BaseWireBlock extends AbstractNetworkBlock implements INet
 	@Override
 	public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
 		return canSupportCenter(level, pos.below(), Direction.UP);
+	}
+
+	@Override
+	public void onPlace(BlockState state, Level level, BlockPos pos, BlockState previousState, boolean bool) {
+		super.onPlace(state, level, pos, previousState, bool);
+		if (!level.isClientSide && state.getBlock() != previousState.getBlock()) {
+			var network = LogicNetManager.findNetwork(level, pos);
+			if (network.isPresent()) {
+				this.updateConnectionState(level, network.get(), pos, state);
+			}
+		}
 	}
 
 	@Override
