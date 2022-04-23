@@ -1,7 +1,7 @@
-package info.nukepowered.impressivelogic.common.logic.network.blockentity.io;
+package info.nukepowered.impressivelogic.common.blockentity.io;
 
-import info.nukepowered.impressivelogic.api.logic.SimpleNetworkIO;
-import info.nukepowered.impressivelogic.common.logic.network.blockentity.BaseNetworkEntity;
+import info.nukepowered.impressivelogic.api.logic.io.SimpleNetworkIO;
+import info.nukepowered.impressivelogic.common.blockentity.BaseNetworkEntity;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -39,8 +39,6 @@ public class BooleanOutputEntity extends BaseNetworkEntity implements SimpleNetw
         }
     }
 
-
-
     @Override
     public Boolean getState() {
         return active;
@@ -48,8 +46,10 @@ public class BooleanOutputEntity extends BaseNetworkEntity implements SimpleNetw
 
     @Override
     public void setState(Boolean state) {
-        this.active = state;
-        this.dirty = true;
+        if (state != this.active) {
+            this.active = state;
+            this.dirty = true;
+        }
     }
 
     @Override

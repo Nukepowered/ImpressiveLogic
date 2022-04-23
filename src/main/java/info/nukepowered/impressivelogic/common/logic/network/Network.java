@@ -2,6 +2,8 @@ package info.nukepowered.impressivelogic.common.logic.network;
 
 import com.google.common.collect.MapMaker;
 import info.nukepowered.impressivelogic.api.logic.INetworkPart;
+import info.nukepowered.impressivelogic.common.logic.network.execution.NetworkExecutionManager;
+import info.nukepowered.impressivelogic.common.logic.network.execution.tasks.NetStateUpdateTask;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -27,6 +29,14 @@ public class Network {
     private final ConcurrentMap<BlockPos, INetworkPart> entities = new MapMaker()
             .weakValues()
             .makeMap();
+
+    /**
+     * Will trigger network to check logic state and update outputs
+     */
+    public void markDirty() {
+        NetworkExecutionManager.instance()
+            .submit(new NetStateUpdateTask(this));
+    }
 
     public boolean registerPart(BlockPos pos, INetworkPart part) {
         if (entities.put(pos, part) != null) {
