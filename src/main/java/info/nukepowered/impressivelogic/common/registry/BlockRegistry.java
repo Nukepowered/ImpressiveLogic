@@ -5,7 +5,8 @@ import info.nukepowered.impressivelogic.api.logic.INetworkPart.PartType;
 import info.nukepowered.impressivelogic.common.block.BaseNetworkEntityHolder;
 import info.nukepowered.impressivelogic.common.block.BaseNetworkEntityHolder.Builder;
 import info.nukepowered.impressivelogic.common.block.wire.NetworkCableBlock;
-import info.nukepowered.impressivelogic.common.logic.network.blockentity.io.BooleanOutputEntity;
+import info.nukepowered.impressivelogic.common.blockentity.io.BooleanInputEntity;
+import info.nukepowered.impressivelogic.common.blockentity.io.BooleanOutputEntity;
 import info.nukepowered.impressivelogic.common.util.ExtendedProps;
 
 import net.minecraft.world.item.BlockItem;
@@ -34,6 +35,7 @@ public class BlockRegistry {
 	}
 	
 	public static final RegistryObject<NetworkCableBlock> NETWORK_CABLE = registerBlock("network_cable", ImpressiveLogicTabs.MAIN, NetworkCableBlock::new);
+
 	public static final RegistryObject<BaseNetworkEntityHolder<BooleanOutputEntity>> LOGIC_LAMP;
 	static {
 		LOGIC_LAMP = registerBlock("logic_lamp", ImpressiveLogicTabs.MAIN, () -> Builder.of((pos, state) -> new BooleanOutputEntity(TileEntityRegistry.LOGIC_LAMP.get(), pos, state))
@@ -45,6 +47,18 @@ public class BlockRegistry {
 					.sound(SoundType.GLASS)
 					.strength(0.5F))
 			.tickable()
+			.build());
+	}
+
+	public static final RegistryObject<BaseNetworkEntityHolder<BooleanInputEntity>> LOGIC_LEVER;
+	static {
+		LOGIC_LEVER = registerBlock("logic_lever", ImpressiveLogicTabs.MAIN, () ->  Builder.of(BooleanInputEntity::new, TileEntityRegistry.LOGIC_LEVER)
+			.addState(BooleanOutputEntity.ACTIVE_PROPERTY, false)
+			.type(PartType.IO)
+			.blockProperties(
+				(ExtendedProps) ExtendedProps.of(Material.DECORATION)
+					.strength(0.4F)
+					.noCollission())
 			.build());
 	}
 

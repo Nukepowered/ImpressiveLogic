@@ -27,7 +27,6 @@ public class NetworkExecutionManager {
         logicExecutor.submit(task);
     }
 
-
     public static NetworkExecutionManager instance() {
         return INSTANCE;
     }

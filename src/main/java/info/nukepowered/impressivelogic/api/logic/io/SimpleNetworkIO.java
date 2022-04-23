@@ -1,4 +1,4 @@
-package info.nukepowered.impressivelogic.api.logic;
+package info.nukepowered.impressivelogic.api.logic.io;
 
 /*
  * Copyright (c) Nukepowered 2022.

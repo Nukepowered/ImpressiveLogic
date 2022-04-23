@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "active=false": {
+      "model": "minecraft:block/lever_on"
+    },
+    "active=true": {
+      "model": "minecraft:block/lever"
+    }
+  }
+}

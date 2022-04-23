@@ -1,7 +1,7 @@
 package info.nukepowered.impressivelogic.common.logic.network;
 
 import info.nukepowered.impressivelogic.ImpressiveLogic;
-import info.nukepowered.impressivelogic.common.logic.network.blockentity.BaseNetworkEntity;
+import info.nukepowered.impressivelogic.common.blockentity.BaseNetworkEntity;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;

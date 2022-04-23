@@ -31,7 +31,7 @@ public abstract class AbstractNetworkBlock extends Block implements INetworkPart
 
     @Override
     public void onPlace(BlockState state, Level level, BlockPos pos, BlockState previousState, boolean bool) {
-        if (!level.isClientSide) {
+        if (!level.isClientSide && this.checkStateChanged(previousState, state)) {
             var networksJoined = new HashSet<Network>();
             var part = this.getPart(level, pos);
 
@@ -61,7 +61,7 @@ public abstract class AbstractNetworkBlock extends Block implements INetworkPart
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean bool) {
         super.onRemove(state, level, pos, newState, bool);
-        if (!level.isClientSide) {
+        if (!level.isClientSide && this.checkStateChanged(state, newState)) {
             LogicNetManager.removeFromNetwork(level, pos);
         }
     }
@@ -76,5 +76,10 @@ public abstract class AbstractNetworkBlock extends Block implements INetworkPart
                 LogicNetManager.validateNetwork(world, thisPos, from);
             }
         }
+    }
+
+    private boolean checkStateChanged(BlockState old, BlockState current) {
+        var state = old.getBlock() != current.getBlock();
+        return state;
     }
 }

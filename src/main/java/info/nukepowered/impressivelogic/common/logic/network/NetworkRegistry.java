@@ -67,7 +67,7 @@ public class NetworkRegistry {
     }
 
     /**
-     * Associates given part position with network in choosen dimension
+     * Associates given part position with network in chosen dimension
      *
      * @param dimensionId
      * @param network
