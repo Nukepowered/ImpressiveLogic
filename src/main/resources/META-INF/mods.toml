@@ -19,3 +19,10 @@ Mod description 123
     versionRange="[1.18.2,1.19)"
     ordering="NONE"
     side="BOTH"
+
+[[dependencies.impressivelogic]]
+    modId="theoneprobe"
+    mandatory=false
+    versionRange="[1.18-5.0.4,)"
+    ordering="AFTER"
+    side="BOTH"

@@ -3,8 +3,12 @@ package info.nukepowered.impressivelogic.common.blockentity.io;
 import info.nukepowered.impressivelogic.api.logic.io.INetworkInput;
 import info.nukepowered.impressivelogic.common.blockentity.BaseNetworkEntity;
 import info.nukepowered.impressivelogic.common.logic.network.LogicNetManager;
+import info.nukepowered.impressivelogic.common.logic.network.Network;
+import info.nukepowered.impressivelogic.common.logic.network.Network.Entity;
+import info.nukepowered.impressivelogic.common.util.ComponentUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -14,6 +18,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import static info.nukepowered.impressivelogic.common.blockentity.io.BooleanOutputEntity.ACTIVE_PROPERTY;
@@ -29,6 +34,12 @@ public class BooleanInputEntity extends BaseNetworkEntity implements INetworkInp
 
     public BooleanInputEntity(BlockEntityType<? extends BooleanInputEntity> type, BlockPos pos, BlockState state) {
         super(type, pos, state, PartType.IO);
+    }
+
+    @Override
+    public void provideNetworkDebug(List<Component> components, Network network, Entity part) {
+        super.provideNetworkDebug(components, network, part);
+        components.add(ComponentUtils.property("Active", this.getState(), 2));
     }
 
     @Override

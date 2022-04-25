@@ -1,6 +1,5 @@
 package info.nukepowered.impressivelogic.common.util;
 
-import info.nukepowered.impressivelogic.common.logic.network.LogicNetManager;
 import info.nukepowered.impressivelogic.common.logic.network.Network;
 import info.nukepowered.impressivelogic.common.logic.network.NetworkRegistry;
 import net.minecraft.core.BlockPos;
@@ -9,7 +8,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -66,7 +64,7 @@ public class NetworkUtils {
             for (var tag : compound.getList(dimension.toString(), Tag.TAG_COMPOUND)) {
                 var network = new Network();
                 network.readFromNBT((CompoundTag) tag, accessor);
-                for (var entity : network.getEntities()) {
+                for (var entity : network.getEntityLocations()) {
                     registrar.accept(entity, network);
                 }
             }
@@ -94,6 +92,10 @@ public class NetworkUtils {
                 .filter(key -> key.getRegistryName().equals(dimensionId))
                 .findFirst();
         return server.getLevel(resourceKey.get());
+    }
+
+    public static String blockPosToString(BlockPos pos) {
+        return String.format("[%s, %s, %s]", pos.getX(), pos.getY(), pos.getZ());
     }
 
     private static CompoundTag createOrReadFile(Path path) throws IOException {

@@ -1,12 +1,17 @@
 package info.nukepowered.impressivelogic.api.logic;
 
+import info.nukepowered.impressivelogic.common.logic.network.Network;
+import info.nukepowered.impressivelogic.common.logic.network.Network.Entity;
+import info.nukepowered.impressivelogic.common.util.ComponentUtils;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.level.Level;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Copyright (c) Nukepowered 2022.
@@ -15,9 +20,15 @@ import java.util.Collection;
  */
 public interface INetworkPart {
 
-    @Nullable
-    default Component provideDebugInformation(Level level, BlockPos pos) {
-        return null;
+    /**
+     * List of text to display on One Probe / Debug Item
+     */
+    default void provideNetworkDebug(List<Component> components, Network network, Entity part) {
+        components.add(new TextComponent("Network Information")
+            .withStyle(ChatFormatting.YELLOW));
+
+        components.add(ComponentUtils.property("Size", network.getEntities().size()));
+        components.add(ComponentUtils.property("Compiled", network.getConnections() != null)); // TODO
     }
 
     /**
