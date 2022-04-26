@@ -5,6 +5,7 @@ import com.google.common.graph.GraphBuilder;
 
 import info.nukepowered.impressivelogic.api.logic.INetworkPart;
 import info.nukepowered.impressivelogic.api.logic.INetworkPart.PartType;
+import info.nukepowered.impressivelogic.api.logic.io.INetworkInput;
 import info.nukepowered.impressivelogic.common.logic.network.execution.NetworkExecutionManager;
 import info.nukepowered.impressivelogic.common.logic.network.execution.tasks.NetStateUpdateTask;
 import info.nukepowered.impressivelogic.common.util.NetworkUtils;
@@ -37,8 +38,9 @@ import static info.nukepowered.impressivelogic.ImpressiveLogic.LOGGER;
  */
 public class Network {
 
-    private Set<Entity> entities = ConcurrentHashMap.newKeySet();
-    private Graph<Entity> connections;
+    private Set<Entity<?>> entities = ConcurrentHashMap.newKeySet();
+    private Set<Entity<INetworkInput<?>>> inputs = new HashSet<>();
+    private Graph<Entity<?>> connections;
 
     /**
      * Will trigger network to check logic state and update outputs
@@ -48,12 +50,14 @@ public class Network {
             .submit(new NetStateUpdateTask(this));
     }
 
-    public Entity registerPart(BlockPos pos, INetworkPart part) {
-        final var entity = new Entity(pos, part);
+    public <T extends INetworkPart> Entity<T> registerPart(BlockPos pos, T part) {
+        final var entity = new Entity<>(pos, part);
         if (!entities.add(entity)) {
             LOGGER.error(NetworkRegistry.NETWORK_MARKER,
                     "Re-registering of part detected, it is an error!", new Exception());
             return null;
+        } else if (entity.isInputType()) {
+            this.inputs.add((Entity<INetworkInput<?>>) entity);
         }
 
         return entity;
@@ -68,6 +72,9 @@ public class Network {
                 .map(dir -> Pair.of(pos.relative(dir), dir.getOpposite()))
                 .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
             entities.remove(entity);
+            if (entity.isInputType()) {
+                inputs.remove(entity);
+            }
 
             // Get all entities connected before and remove connection
             this.entities.stream()
@@ -79,14 +86,22 @@ public class Network {
 
     public void merge(Network other) {
         this.entities.addAll(other.entities);
+        this.inputs.addAll(other.inputs);
     }
 
     public Network split(Collection<BlockPos> parts) {
         var newNet = new Network();
         entities.stream()
             .filter(e -> parts.contains(e.location))
-            .forEach(e -> newNet.entities.add(e));
+            .forEach(e -> {
+                newNet.entities.add(e);
+                if (e.isInputType()) {
+                    newNet.inputs.add((Entity<INetworkInput<?>>) e);
+                }
+            });
+
         entities.removeAll(parts); // different types, but since it is HASH set, it will work anyway.
+        inputs.removeAll(parts);
         return newNet;
     }
 
@@ -99,21 +114,25 @@ public class Network {
     /**
      * @return set of new entities according to entity map. To get actual network structure get graph first {@link #getConnections()}
      */
-    public Set<Entity> getEntities() {
+    public Set<Entity<?>> getEntities() {
         return Set.copyOf(this.entities);
     }
 
-    public Optional<Entity> findEntity(BlockPos pos) {
+    public Set<Entity<INetworkInput<?>>> getInputs() {
+        return Set.copyOf(this.inputs);
+    }
+
+    public Optional<Entity<?>> findEntity(BlockPos pos) {
         return this.entities.stream()
             .filter(e -> e.location.equals(pos))
             .findFirst();
     }
 
-    public Graph<Entity> getConnections() {
+    public Graph<Entity<?>> getConnections() {
         return this.connections;
     }
 
-    public void setConnections(Graph<Entity> connections) {
+    public void setConnections(Graph<Entity<?>> connections) {
         this.connections = connections;
     }
 
@@ -160,6 +179,9 @@ public class Network {
                     var result = new Entity(location, part.getPart((Level) accessor, location));
                     result.connections.addAll(connections);
                     this.entities.add(result);
+                    if (result.isInputType()) {
+                        this.inputs.add(result);
+                    }
                 }
             }
         }
@@ -175,15 +197,15 @@ public class Network {
     /**
      * Immutable network entry
      */
-    public class Entity {
+    public static class Entity<T extends INetworkPart> {
 
-        public static final Comparator<Entity> COMPARATOR = Comparator.comparing(Entity::getLocation);
+        public static final Comparator<Entity<?>> COMPARATOR = Comparator.comparing(Entity::getLocation);
 
         private final BlockPos location;
-        private final WeakReference<INetworkPart> partRef;
+        private final WeakReference<T> partRef;
         private final Set<Direction> connections = new HashSet<>();
 
-        public Entity(BlockPos pos, INetworkPart part) {
+        public Entity(BlockPos pos, T part) {
             this.location = pos;
             this.partRef = new WeakReference<>(part);
         }
@@ -196,12 +218,17 @@ public class Network {
             return this.location;
         }
 
-        public INetworkPart getPart() {
+        public T getPart() {
             return this.partRef.get();
         }
 
         public PartType getType() {
             return this.getPart().getPartType();
+        }
+
+        public boolean isInputType() {
+            var part = this.getPart();
+            return part.getPartType() == PartType.IO && part instanceof INetworkInput<?>;
         }
 
         @Override

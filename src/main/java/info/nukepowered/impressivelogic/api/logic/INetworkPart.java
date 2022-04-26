@@ -23,12 +23,13 @@ public interface INetworkPart {
     /**
      * List of text to display on One Probe / Debug Item
      */
-    default void provideNetworkDebug(List<Component> components, Network network, Entity part) {
+    default void provideNetworkDebug(List<Component> components, Network network, Entity<?> part) {
         components.add(new TextComponent("Network Information")
             .withStyle(ChatFormatting.YELLOW));
 
         components.add(ComponentUtils.property("Size", network.getEntities().size()));
-        components.add(ComponentUtils.property("Compiled", network.getConnections() != null)); // TODO
+        components.add(ComponentUtils.property("Inputs", network.getInputs().size()));
+        components.add(ComponentUtils.property("Has Graph", network.getConnections() != null)); // TODO
     }
 
     /**
@@ -65,6 +66,6 @@ public interface INetworkPart {
         CONNECTOR,
         STATEFUL,
         STATELESS,
-        IO;
+        IO
     }
 }
