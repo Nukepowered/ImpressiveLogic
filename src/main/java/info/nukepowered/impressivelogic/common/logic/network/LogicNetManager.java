@@ -1,6 +1,8 @@
 package info.nukepowered.impressivelogic.common.logic.network;
 
 import info.nukepowered.impressivelogic.api.logic.INetworkPart;
+import info.nukepowered.impressivelogic.common.block.AbstractNetworkBlock;
+import info.nukepowered.impressivelogic.common.logic.network.Network.Entity;
 import info.nukepowered.impressivelogic.common.logic.network.execution.NetworkExecutionManager;
 import info.nukepowered.impressivelogic.common.logic.network.execution.tasks.NetCompileTask;
 
@@ -52,16 +54,19 @@ public class LogicNetManager {
      * @return true if joined to network
      */
     public static boolean joinNetwork(Level level, Network network, BlockPos partPos, Direction from, INetworkPart part) {
-        if (!network.getEntities().contains(partPos)) {
+        if (!network.getEntityLocations().contains(partPos)) {
             var netPos = partPos.relative(from);
             var netDir = from.getOpposite();
             var partOptional = network.findEntity(netPos);
 
             if (partOptional.isPresent()) {
-                var netPart = partOptional.get();
-                if (netPart.acceptConnection(level, netPos, netDir)) {
-                    if (network.registerPart(partPos, part)) {
+                var netEntity = partOptional.get();
+                if (netEntity.getPart().acceptConnection(level, netPos, netDir)) {
+                    Entity entity;
+                    if ((entity = network.registerPart(partPos, part)) != null) {
                         NETWORKS.registerPartMapping(level.dimension().location(), network, partPos);
+                        netEntity.getConnections().add(netDir);
+                        entity.getConnections().add(from);
                         return true;
                     }
                 }
@@ -77,7 +82,7 @@ public class LogicNetManager {
 
         for (var net : queue) {
             first.merge(net);
-            NETWORKS.updateMappings(level.dimension().location(), first, net.getEntities());
+            NETWORKS.updateMappings(level.dimension().location(), first, net.getEntityLocations());
         }
 
         NetworkExecutionManager.instance().submit(new NetCompileTask(first));
@@ -88,7 +93,7 @@ public class LogicNetManager {
      *
      * This method is not validate state, will just delete part from registry.
      * If validation is required, call {@link #validateNetwork(Level, BlockPos, Direction)} right after
-     * @see info.nukepowered.impressivelogic.common.block.AbstractNetworkBlock
+     * @see AbstractNetworkBlock
      *
      * @param level
      * @param pos
@@ -115,7 +120,7 @@ public class LogicNetManager {
         // If throws NPE here - you are using this method wrong
         // It should be called only if Part of network notice update around
         var currentNetwork = findNetwork(level, updatedBlock).get();
-        var part = currentNetwork.findEntity(updatedBlock).get();
+        var part = currentNetwork.findEntity(updatedBlock).get().getPart();
         final var initSides = new HashSet<>(part.getConnectableSides(level, updatedBlock));
 
         // Will not check for side update came from, block removal expected
@@ -139,13 +144,16 @@ public class LogicNetManager {
                 if (!visited.contains(currentPos)) {
                     var opt = currentNetwork.findEntity(currentPos);
                     // If network part is still there, and it's accepting connection - add
-                    if (opt.isPresent() && opt.get().acceptConnection(level, currentPos, side.getOpposite())) {
-                        parts.add(currentPos.immutable());
-                        moveStack.add(Pair.of(side.getOpposite(), sides)); // Need to check it neighbours as well
-                        sides = new LinkedList<>(opt.get().getConnectableSides(level, currentPos));
-                        sides.remove(side.getOpposite()); // Do not check side we came from
+                    if (opt.isPresent()) {
+                        var entity = opt.get();
+                        if (entity.getPart().acceptConnection(level, currentPos, side.getOpposite())) {
+                            parts.add(currentPos.immutable());
+                            moveStack.add(Pair.of(side.getOpposite(), sides)); // Need to check it neighbours as well
+                            sides = new LinkedList<>(entity.getPart().getConnectableSides(level, currentPos));
+                            sides.remove(side.getOpposite()); // Do not check side we came from
 
-                        continue main;
+                            continue main;
+                        }
                     }
                 }
 
@@ -164,7 +172,7 @@ public class LogicNetManager {
         }
 
         // In case network changed, pull all parts from network and create new
-        if (!parts.containsAll(currentNetwork.getEntities())) {
+        if (!parts.containsAll(currentNetwork.getEntityLocations())) {
             var newNetwork = currentNetwork.split(parts);
             NETWORKS.updateMappings(level.dimension().location(), newNetwork, parts);
             NetworkExecutionManager.instance().submit(new NetCompileTask(newNetwork));

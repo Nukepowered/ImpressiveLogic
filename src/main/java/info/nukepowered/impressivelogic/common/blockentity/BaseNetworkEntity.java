@@ -2,9 +2,12 @@ package info.nukepowered.impressivelogic.common.blockentity;
 
 import info.nukepowered.impressivelogic.api.logic.INetworkPart;
 
+import info.nukepowered.impressivelogic.common.block.AbstractNetworkBlock;
 import info.nukepowered.impressivelogic.common.logic.network.LogicNetManager;
 import info.nukepowered.impressivelogic.common.logic.network.Network;
+import info.nukepowered.impressivelogic.common.logic.network.Network.Entity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -15,6 +18,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
 import java.util.Optional;
 
 /*
@@ -64,6 +68,14 @@ public abstract class BaseNetworkEntity extends BlockEntity implements INetworkP
     }
 
     public void onNeighbourChanged(Block updatedBy, BlockPos updatedFrom) {
+    }
+
+    @Override
+    public void provideNetworkDebug(List<Component> components, Network network, Entity part) {
+        // Call same code for network entity info
+        if (this.getBlockState().getBlock() instanceof AbstractNetworkBlock block) {
+            block.provideNetworkDebug(components, network, part);
+        }
     }
 
     @Override

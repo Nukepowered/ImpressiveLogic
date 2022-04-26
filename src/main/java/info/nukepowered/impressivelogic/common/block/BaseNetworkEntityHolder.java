@@ -6,13 +6,11 @@ import info.nukepowered.impressivelogic.common.blockentity.BaseNetworkEntity;
 import info.nukepowered.impressivelogic.common.util.ExtendedProps;
 
 import info.nukepowered.impressivelogic.common.util.PredicateEntityType;
-import info.nukepowered.impressivelogic.common.util.TriConsumer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;

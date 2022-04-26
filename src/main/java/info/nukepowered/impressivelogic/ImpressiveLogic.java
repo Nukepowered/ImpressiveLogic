@@ -5,8 +5,9 @@ import info.nukepowered.impressivelogic.common.logic.network.LogicNetManager;
 import info.nukepowered.impressivelogic.common.logic.network.execution.NetworkExecutionManager;
 import info.nukepowered.impressivelogic.common.registry.BlockRegistry;
 import info.nukepowered.impressivelogic.common.registry.ItemRegistry;
-
 import info.nukepowered.impressivelogic.common.registry.TileEntityRegistry;
+
+import info.nukepowered.impressivelogic.integration.ModIntegration;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -41,12 +42,14 @@ public class ImpressiveLogic {
 		MinecraftForge.EVENT_BUS.register(LogicNetManager.class);
 		MinecraftForge.EVENT_BUS.register(NetworkExecutionManager.class);
 
+		ModIntegration.registerIntegrations();
 		BlockRegistry.init();
 		ItemRegistry.init();
 		TileEntityRegistry.init();
 	}
 
 	private void setupCommon(final FMLCommonSetupEvent event) {
-
+		// Perform integrations
+		ModIntegration.setup();
 	}
 }

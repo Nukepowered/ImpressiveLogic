@@ -6,6 +6,7 @@ import info.nukepowered.impressivelogic.common.logic.network.NetworkRegistry;
 import info.nukepowered.impressivelogic.common.registry.ImpressiveLogicTabs;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -16,6 +17,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+
+import java.util.ArrayList;
 
 /**
  * Copyright (c) Nukepowered 2022.
@@ -41,17 +44,27 @@ public class ItemDebug extends Item {
             final var pos = context.getClickedPos();
             var state = level.getBlockState(pos);
             var player = context.getPlayer();
-            if (state.getBlock() instanceof INetworkPart part) {
+            if (state.getBlock() instanceof INetworkPart) {
                 if (player != null) {
-                    var info = part.provideDebugInformation(level, pos);
-                    if (info != null) {
-                        player.sendMessage(info, Util.NIL_UUID);
+                    final var components = new ArrayList<Component>();
+                    final var opt = LogicNetManager.findNetwork(level, pos);
+
+                    if (opt.isPresent()) {
+                        var network = opt.get();
+                        var eopt = network.findEntity(pos);
+                        if (eopt.isPresent()) {
+                            var entity = eopt.get();
+                            entity.getPart().provideNetworkDebug(components, network, eopt.get());
+                        }
+                    }
+
+                    if (!components.isEmpty()) {
+                        components.forEach(c -> player.sendMessage(c, Util.NIL_UUID));
                         return InteractionResult.SUCCESS;
                     }
                 }
             }
         }
-
 
 
         return InteractionResult.PASS;
