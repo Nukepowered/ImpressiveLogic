@@ -37,7 +37,7 @@ public abstract class AbstractNetworkBlock extends Block implements INetworkPart
     protected abstract void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder);
 
     @Override
-    public void provideNetworkDebug(List<Component> components, Network network, Entity entity) {
+    public void provideNetworkDebug(List<Component> components, Network network, Entity<?> entity) {
         INetworkPart.super.provideNetworkDebug(components, network, entity);
         var connections = entity.getConnections().stream()
             .map(Direction::getName)

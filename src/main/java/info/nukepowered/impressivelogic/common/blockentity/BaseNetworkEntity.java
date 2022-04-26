@@ -71,7 +71,7 @@ public abstract class BaseNetworkEntity extends BlockEntity implements INetworkP
     }
 
     @Override
-    public void provideNetworkDebug(List<Component> components, Network network, Entity part) {
+    public void provideNetworkDebug(List<Component> components, Network network, Entity<?> part) {
         // Call same code for network entity info
         if (this.getBlockState().getBlock() instanceof AbstractNetworkBlock block) {
             block.provideNetworkDebug(components, network, part);

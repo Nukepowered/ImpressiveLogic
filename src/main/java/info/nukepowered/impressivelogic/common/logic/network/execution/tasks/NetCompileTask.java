@@ -2,12 +2,11 @@ package info.nukepowered.impressivelogic.common.logic.network.execution.tasks;
 
 import com.google.common.graph.GraphBuilder;
 import com.google.common.graph.ImmutableGraph;
-import info.nukepowered.impressivelogic.api.logic.INetworkPart.PartType;
-import info.nukepowered.impressivelogic.api.logic.io.INetworkInput;
-import info.nukepowered.impressivelogic.api.logic.io.INetworkOutput;
-import info.nukepowered.impressivelogic.common.logic.network.Network;
 
+import info.nukepowered.impressivelogic.api.logic.INetworkPart.PartType;
+import info.nukepowered.impressivelogic.common.logic.network.Network;
 import info.nukepowered.impressivelogic.common.logic.network.Network.Entity;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.BlockPos.MutableBlockPos;
 import net.minecraft.core.Direction;
@@ -16,6 +15,8 @@ import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static info.nukepowered.impressivelogic.ImpressiveLogic.LOGGER;
 
@@ -29,27 +30,22 @@ public class NetCompileTask implements Runnable {
     public static final Marker COMPILE_MARKER = MarkerFactory.getMarker("NET_COMPILE");
 
     private final Network suspect;
-    private final ImmutableGraph.Builder gbuilder;
-    private final NavigableMap<BlockPos, Entity> entities;
+    private final ImmutableGraph.Builder<Entity<?>> gbuilder;
+    private final NavigableMap<BlockPos, Entity<?>> entities;
 
     public NetCompileTask(Network suspect) {
         this.suspect = suspect;
-        this.gbuilder = GraphBuilder.directed().<Entity>immutable();
+        this.gbuilder = GraphBuilder.directed().<Entity<?>>immutable();
         this.entities = new TreeMap<>(Comparator.naturalOrder());
     }
 
     @Override
     public void run() {
         LOGGER.debug(COMPILE_MARKER, "Network compile execution for {}", suspect);
-        var inputs = new HashMap<Entity, Queue<Direction>>();
-
         // Init of entities mapping, and filtering input nodes
-        for (var entity : suspect.getEntities()) {
-            entities.put(entity.getLocation(), entity);
-            if (entity.getType() == PartType.IO && entity.getPart() instanceof INetworkInput<?>) {
-                inputs.put(entity, new LinkedList<>(entity.getConnections()));
-            }
-        }
+        Map<Entity<?>, Queue<Direction>> inputs = suspect.getInputs().stream()
+            .collect(Collectors.toMap(Function.identity(), e -> new LinkedList<>(e.getConnections())));
+        suspect.getEntities().forEach(e -> entities.put(e.getLocation(), e));
 
         this.compileGraph(inputs);
     }
@@ -57,8 +53,8 @@ public class NetCompileTask implements Runnable {
     /**
      * Will assemble raw graph of network entity connections
      */
-    private void compileGraph(Map<Entity, Queue<Direction>> nodes) {
-        var newNodes = new HashMap<Entity, Queue<Direction>>();
+    private void compileGraph(Map<Entity<?>, Queue<Direction>> nodes) {
+        var newNodes = new HashMap<Entity<?>, Queue<Direction>>();
         while (true) {
             for (var entry : nodes.entrySet()) {
                 gbuilder.addNode(entry.getKey());
@@ -81,11 +77,10 @@ public class NetCompileTask implements Runnable {
      * @param entity node start edges from
      * @param sidesToCheck this node not checked sides
      */
-    private void findEdges(Map<Entity, Queue<Direction>> foundNodes, Entity entity, Queue<Direction> sidesToCheck) {
+    private void findEdges(Map<Entity<?>, Queue<Direction>> foundNodes, Entity<?> entity, Queue<Direction> sidesToCheck) {
         Deque<Pair<Direction, Queue<Direction>>> moveStack = new LinkedList<>();
         MutableBlockPos pos = entity.getLocation().mutable();
 
-        main:
         while (true) {
             while (!sidesToCheck.isEmpty()) {
                 var side = sidesToCheck.poll();
@@ -125,7 +120,7 @@ public class NetCompileTask implements Runnable {
      * @param entity node to check
      * @return return true if signal can be passed through (cable, or logical gate with output)
      */
-    private boolean doNodePassThrough(Entity entity) {
+    private boolean doNodePassThrough(Entity<?> entity) {
         return entity.getType() != PartType.IO; // TODO check if node has outputs
     }
 }

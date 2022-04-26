@@ -37,7 +37,7 @@ public class BooleanInputEntity extends BaseNetworkEntity implements INetworkInp
     }
 
     @Override
-    public void provideNetworkDebug(List<Component> components, Network network, Entity part) {
+    public void provideNetworkDebug(List<Component> components, Network network, Entity<?> part) {
         super.provideNetworkDebug(components, network, part);
         components.add(ComponentUtils.property("Active", this.getState(), 2));
     }
