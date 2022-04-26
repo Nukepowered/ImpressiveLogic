@@ -1,18 +1,21 @@
 package info.nukepowered.impressivelogic.common.logic.network.execution.tasks;
 
 import com.google.common.graph.GraphBuilder;
+import com.google.common.graph.ImmutableGraph;
+import info.nukepowered.impressivelogic.api.logic.INetworkPart.PartType;
 import info.nukepowered.impressivelogic.api.logic.io.INetworkInput;
 import info.nukepowered.impressivelogic.api.logic.io.INetworkOutput;
 import info.nukepowered.impressivelogic.common.logic.network.Network;
 
 import info.nukepowered.impressivelogic.common.logic.network.Network.Entity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.BlockPos.MutableBlockPos;
+import net.minecraft.core.Direction;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.TreeSet;
+import java.util.*;
 
 import static info.nukepowered.impressivelogic.ImpressiveLogic.LOGGER;
 
@@ -26,56 +29,103 @@ public class NetCompileTask implements Runnable {
     public static final Marker COMPILE_MARKER = MarkerFactory.getMarker("NET_COMPILE");
 
     private final Network suspect;
+    private final ImmutableGraph.Builder gbuilder;
+    private final NavigableMap<BlockPos, Entity> entities;
 
     public NetCompileTask(Network suspect) {
         this.suspect = suspect;
+        this.gbuilder = GraphBuilder.directed().<Entity>immutable();
+        this.entities = new TreeMap<>(Comparator.naturalOrder());
     }
 
     @Override
     public void run() {
         LOGGER.debug(COMPILE_MARKER, "Network compile execution for {}", suspect);
-        var gbuilder = GraphBuilder.directed().<Entity>immutable();
+        var inputs = new HashMap<Entity, Queue<Direction>>();
 
-        var entities = new TreeSet<>(Entity.COMPARATOR);
-        var inputs = new LinkedList<Entity>();
-        var outputs = new LinkedList<Entity>();
-        var logic = new LinkedList<Entity>();
-        entities.addAll(suspect.getEntities());
-
-        // Sorting nodes
-        for (var entity : entities) {
-            switch (entity.getType()) {
-                case IO: {
-                    var part = entity.getPart();
-                    if (part instanceof INetworkInput<?>) {
-                        outputs.add(entity);
-                    }
-                    if (part instanceof INetworkOutput<?>) {
-                        inputs.add(entity);
-                    }
-                }
-                case STATEFUL:
-                case STATELESS:
-                    logic.add(entity);
+        // Init of entities mapping, and filtering input nodes
+        for (var entity : suspect.getEntities()) {
+            entities.put(entity.getLocation(), entity);
+            if (entity.getType() == PartType.IO && entity.getPart() instanceof INetworkInput<?>) {
+                inputs.put(entity, new LinkedList<>(entity.getConnections()));
             }
         }
 
-        var completed = new HashSet<BlockPos>();
-        while (!inputs.isEmpty()) {
-            var entity = inputs.pop();
+        this.compileGraph(inputs);
+    }
 
+    /**
+     * Will assemble raw graph of network entity connections
+     */
+    private void compileGraph(Map<Entity, Queue<Direction>> nodes) {
+        var newNodes = new HashMap<Entity, Queue<Direction>>();
+        while (true) {
+            for (var entry : nodes.entrySet()) {
+                gbuilder.addNode(entry.getKey());
+                this.findEdges(newNodes, entry.getKey(), entry.getValue());
+            }
 
-//            entity.part().
-
-
+            nodes = newNodes;
+            if (newNodes.isEmpty()) {
+                break;
+            }
         }
 
-        LOGGER.info("entities " + entities);
-        LOGGER.info("inputs " + inputs);
-        LOGGER.info("outputs " + outputs);
-        LOGGER.info("logic " + logic);
-
-
         suspect.setConnections(gbuilder.build());
+    }
+
+    /**
+     * Searches for edges of this node in sides of sidesToCheck
+     *
+     * @param foundNodes if new nodes was found, will be added to this map with their not checked directions
+     * @param entity node start edges from
+     * @param sidesToCheck this node not checked sides
+     */
+    private void findEdges(Map<Entity, Queue<Direction>> foundNodes, Entity entity, Queue<Direction> sidesToCheck) {
+        Deque<Pair<Direction, Queue<Direction>>> moveStack = new LinkedList<>();
+        MutableBlockPos pos = entity.getLocation().mutable();
+
+        main:
+        while (true) {
+            while (!sidesToCheck.isEmpty()) {
+                var side = sidesToCheck.poll();
+                pos.move(side);
+                var node = entities.get(pos);
+                var sides = new LinkedList<>(node.getConnections());
+                sides.remove(side.getOpposite());
+
+                if (node.getType() == PartType.CONNECTOR) {
+                    if (!sides.isEmpty()) {
+                        moveStack.add(Pair.of(side.getOpposite(), sidesToCheck));
+                        sidesToCheck = sides;
+                        continue;
+                    }
+                } else {
+                    gbuilder.addNode(node);
+                    gbuilder.putEdge(entity, node);
+                    if (!sides.isEmpty() && this.doNodePassThrough(node)) {
+                        foundNodes.put(node, sides);
+                    }
+                }
+
+                pos.move(side.getOpposite());
+            }
+
+            if (moveStack.isEmpty()) {
+                break;
+            } else {
+                var pair = moveStack.pollLast();
+                sidesToCheck = pair.getValue();
+                pos.move(pair.getKey());
+            }
+        }
+    }
+
+    /**
+     * @param entity node to check
+     * @return return true if signal can be passed through (cable, or logical gate with output)
+     */
+    private boolean doNodePassThrough(Entity entity) {
+        return entity.getType() != PartType.IO; // TODO check if node has outputs
     }
 }

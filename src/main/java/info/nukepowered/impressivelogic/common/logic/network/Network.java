@@ -114,9 +114,7 @@ public class Network {
     }
 
     public void setConnections(Graph<Entity> connections) {
-        this.connections = GraphBuilder.from(connections)
-            .immutable()
-            .build();
+        this.connections = connections;
     }
 
     public boolean isEmpty() {
