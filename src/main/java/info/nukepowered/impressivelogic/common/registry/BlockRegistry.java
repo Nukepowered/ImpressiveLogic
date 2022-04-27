@@ -8,7 +8,6 @@ import info.nukepowered.impressivelogic.common.block.wire.NetworkCableBlock;
 import info.nukepowered.impressivelogic.common.blockentity.io.BooleanInputEntity;
 import info.nukepowered.impressivelogic.common.blockentity.io.BooleanOutputEntity;
 import info.nukepowered.impressivelogic.common.util.ExtendedProps;
-
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -28,53 +27,56 @@ import java.util.function.Supplier;
  * @author TheDarkDnKTv
  */
 public class BlockRegistry {
-	
-	public static final DeferredRegister<Block> BLOCKS;
-	static {
-		BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, ImpressiveLogic.MODID);
-	}
-	
-	public static final RegistryObject<NetworkCableBlock> NETWORK_CABLE = registerBlock("network_cable", ImpressiveLogicTabs.MAIN, NetworkCableBlock::new);
 
-	public static final RegistryObject<BaseNetworkEntityHolder<BooleanOutputEntity>> LOGIC_LAMP;
-	static {
-		LOGIC_LAMP = registerBlock("logic_lamp", ImpressiveLogicTabs.MAIN, () -> Builder.of((pos, state) -> new BooleanOutputEntity(TileEntityRegistry.LOGIC_LAMP.get(), pos, state))
-			.type(PartType.IO)
-			.addState(BooleanOutputEntity.ACTIVE_PROPERTY, false)
-			.blockProperties(
-				(ExtendedProps) ExtendedProps.of(Material.BUILDABLE_GLASS)
-					.lightLevel(state -> state.getValue(BooleanOutputEntity.ACTIVE_PROPERTY) ? 15 : 0)
-					.sound(SoundType.GLASS)
-					.strength(0.5F))
-			.tickable()
-			.build());
-	}
+    public static final DeferredRegister<Block> BLOCKS;
 
-	public static final RegistryObject<BaseNetworkEntityHolder<BooleanInputEntity>> LOGIC_LEVER;
-	static {
-		LOGIC_LEVER = registerBlock("logic_lever", ImpressiveLogicTabs.MAIN, () ->  Builder.of(BooleanInputEntity::new, TileEntityRegistry.LOGIC_LEVER)
-			.addState(BooleanOutputEntity.ACTIVE_PROPERTY, false)
-			.type(PartType.IO)
-			.blockProperties(
-				(ExtendedProps) ExtendedProps.of(Material.DECORATION)
-					.strength(0.4F)
-					.noCollission())
-			.build());
-	}
+    static {
+        BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, ImpressiveLogic.MODID);
+    }
 
-	public static <T extends Block> RegistryObject<T> registerBlock(String name, Supplier<T> supplier) {
-		return registerBlock(name, null, supplier);
-	}
+    public static final RegistryObject<NetworkCableBlock> NETWORK_CABLE = registerBlock("network_cable", ImpressiveLogicTabs.MAIN, NetworkCableBlock::new);
 
-	public static <T extends Block> RegistryObject<T> registerBlock(String name, CreativeModeTab tab, Supplier<T> supplier) {
-		var object = BLOCKS.register(name, supplier);
-		var props = new Item.Properties()
-				.tab(tab);
-		ItemRegistry.ITEMS.register(name, () -> new BlockItem(object.get(), props));
-		return object;
-	}
+    public static final RegistryObject<BaseNetworkEntityHolder<BooleanOutputEntity>> LOGIC_LAMP;
 
-	public static void init() {
-		BLOCKS.register(FMLJavaModLoadingContext.get().getModEventBus());
-	}
+    static {
+        LOGIC_LAMP = registerBlock("logic_lamp", ImpressiveLogicTabs.MAIN, () -> Builder.of((pos, state) -> new BooleanOutputEntity(TileEntityRegistry.LOGIC_LAMP.get(), pos, state))
+            .type(PartType.IO)
+            .addState(BooleanOutputEntity.ACTIVE_PROPERTY, false)
+            .blockProperties(
+                (ExtendedProps) ExtendedProps.of(Material.BUILDABLE_GLASS)
+                    .lightLevel(state -> state.getValue(BooleanOutputEntity.ACTIVE_PROPERTY) ? 15 : 0)
+                    .sound(SoundType.GLASS)
+                    .strength(0.5F))
+            .tickable()
+            .build());
+    }
+
+    public static final RegistryObject<BaseNetworkEntityHolder<BooleanInputEntity>> LOGIC_LEVER;
+
+    static {
+        LOGIC_LEVER = registerBlock("logic_lever", ImpressiveLogicTabs.MAIN, () -> Builder.of(BooleanInputEntity::new, TileEntityRegistry.LOGIC_LEVER)
+            .addState(BooleanOutputEntity.ACTIVE_PROPERTY, false)
+            .type(PartType.IO)
+            .blockProperties(
+                (ExtendedProps) ExtendedProps.of(Material.DECORATION)
+                    .strength(0.4F)
+                    .noCollission())
+            .build());
+    }
+
+    public static <T extends Block> RegistryObject<T> registerBlock(String name, Supplier<T> supplier) {
+        return registerBlock(name, null, supplier);
+    }
+
+    public static <T extends Block> RegistryObject<T> registerBlock(String name, CreativeModeTab tab, Supplier<T> supplier) {
+        var object = BLOCKS.register(name, supplier);
+        var props = new Item.Properties()
+            .tab(tab);
+        ItemRegistry.ITEMS.register(name, () -> new BlockItem(object.get(), props));
+        return object;
+    }
+
+    public static void init() {
+        BLOCKS.register(FMLJavaModLoadingContext.get().getModEventBus());
+    }
 }

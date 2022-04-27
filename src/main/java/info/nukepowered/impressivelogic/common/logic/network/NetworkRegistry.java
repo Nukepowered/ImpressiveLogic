@@ -1,13 +1,11 @@
 package info.nukepowered.impressivelogic.common.logic.network;
 
 import info.nukepowered.impressivelogic.common.util.NetworkUtils;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
@@ -101,14 +99,14 @@ public class NetworkRegistry {
 
     public Optional<Network> findNetwork(ResourceLocation dimension, BlockPos pos) {
         return Optional.ofNullable(REGISTRY.get(dimension))
-                .map(map -> map.get(pos));
+            .map(map -> map.get(pos));
     }
 
     public Set<Network> getNetworksForLevel(ResourceLocation dimension) {
         return Optional.ofNullable(REGISTRY.get(dimension))
-                .map(Map::values)
-                .map(Set::copyOf)
-                .orElseGet(HashSet::new);
+            .map(Map::values)
+            .map(Set::copyOf)
+            .orElseGet(HashSet::new);
     }
 
     private ConcurrentMap<BlockPos, Network> getWorldRegistry(ResourceLocation dimensionId) {

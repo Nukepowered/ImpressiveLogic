@@ -1,15 +1,12 @@
 package info.nukepowered.impressivelogic.common.logic.network;
 
 import com.google.common.graph.Graph;
-import com.google.common.graph.GraphBuilder;
-
 import info.nukepowered.impressivelogic.api.logic.INetworkPart;
 import info.nukepowered.impressivelogic.api.logic.INetworkPart.PartType;
 import info.nukepowered.impressivelogic.api.logic.io.INetworkInput;
 import info.nukepowered.impressivelogic.common.logic.network.execution.NetworkExecutionManager;
 import info.nukepowered.impressivelogic.common.logic.network.execution.tasks.NetStateUpdateTask;
 import info.nukepowered.impressivelogic.common.util.NetworkUtils;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -18,7 +15,6 @@ import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
-
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.lang3.tuple.Pair;
@@ -27,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static info.nukepowered.impressivelogic.ImpressiveLogic.LOGGER;
@@ -54,7 +51,7 @@ public class Network {
         final var entity = new Entity<>(pos, part);
         if (!entities.add(entity)) {
             LOGGER.error(NetworkRegistry.NETWORK_MARKER,
-                    "Re-registering of part detected, it is an error!", new Exception());
+                "Re-registering of part detected, it is an error!", new Exception());
             return null;
         } else if (entity.isInputType()) {
             this.inputs.add((Entity<INetworkInput<?>>) entity);
@@ -85,6 +82,26 @@ public class Network {
     }
 
     public void merge(Network other) {
+        var tEntities = this.entities.stream()
+            .collect(Collectors.toMap(Entity::getLocation, Function.identity()));
+        var oEntities = other.entities.stream()
+            .collect(Collectors.toMap(Entity::getLocation, Function.identity()));
+
+
+        for (var entry : oEntities.entrySet()) {
+            var oEntity = entry.getValue();
+            var tEntity = tEntities.get(entry.getKey());
+            if (tEntity != null) {
+                oEntity.connections.addAll(tEntity.connections);
+            }
+
+            tEntities.put(entry.getKey(), oEntity);
+        }
+
+
+        this.entities.clear();
+        tEntities.values().forEach(this.entities::add);
+
         this.entities.addAll(other.entities);
         this.inputs.addAll(other.inputs);
     }
@@ -190,8 +207,8 @@ public class Network {
     @Override
     public String toString() {
         return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
-                .append("entities", entities)
-                .build();
+            .append("entities", entities)
+            .build();
     }
 
     /**

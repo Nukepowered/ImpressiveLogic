@@ -2,11 +2,9 @@ package info.nukepowered.impressivelogic.common.logic.network.execution.tasks;
 
 import com.google.common.graph.GraphBuilder;
 import com.google.common.graph.ImmutableGraph;
-
 import info.nukepowered.impressivelogic.api.logic.INetworkPart.PartType;
 import info.nukepowered.impressivelogic.common.logic.network.Network;
 import info.nukepowered.impressivelogic.common.logic.network.Network.Entity;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.BlockPos.MutableBlockPos;
 import net.minecraft.core.Direction;
@@ -73,8 +71,8 @@ public class NetCompileTask implements Runnable {
     /**
      * Searches for edges of this node in sides of sidesToCheck
      *
-     * @param foundNodes if new nodes was found, will be added to this map with their not checked directions
-     * @param entity node start edges from
+     * @param foundNodes   if new nodes was found, will be added to this map with their not checked directions
+     * @param entity       node start edges from
      * @param sidesToCheck this node not checked sides
      */
     private void findEdges(Map<Entity<?>, Queue<Direction>> foundNodes, Entity<?> entity, Queue<Direction> sidesToCheck) {

@@ -2,7 +2,6 @@ package info.nukepowered.impressivelogic.common.blockentity.io;
 
 import info.nukepowered.impressivelogic.api.logic.io.INetworkOutput;
 import info.nukepowered.impressivelogic.common.blockentity.BaseNetworkEntity;
-
 import info.nukepowered.impressivelogic.common.logic.network.Network;
 import info.nukepowered.impressivelogic.common.logic.network.Network.Entity;
 import info.nukepowered.impressivelogic.common.util.ComponentUtils;

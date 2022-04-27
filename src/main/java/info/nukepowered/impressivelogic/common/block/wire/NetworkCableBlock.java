@@ -10,7 +10,7 @@ import net.minecraft.world.level.material.Material;
  */
 public final class NetworkCableBlock extends BaseWireBlock {
 
-	public NetworkCableBlock() {
-		super(Material.DECORATION);
-	}
+    public NetworkCableBlock() {
+        super(Material.DECORATION);
+    }
 }

@@ -34,7 +34,7 @@ public interface INetworkPart {
 
     /**
      * @param level
-     * @param pos of this part
+     * @param pos   of this part
      * @param from
      */
     default boolean acceptConnection(Level level, BlockPos pos, Direction from) {
@@ -51,9 +51,9 @@ public interface INetworkPart {
     /**
      * Will search for networks on these sides.
      *
-     * @return iterable of directions is supported for network connections
      * @param level
      * @param pos
+     * @return iterable of directions is supported for network connections
      */
     Collection<Direction> getConnectableSides(Level level, BlockPos pos);
 

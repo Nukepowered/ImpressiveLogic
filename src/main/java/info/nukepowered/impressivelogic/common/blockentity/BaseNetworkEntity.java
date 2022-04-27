@@ -1,7 +1,6 @@
 package info.nukepowered.impressivelogic.common.blockentity;
 
 import info.nukepowered.impressivelogic.api.logic.INetworkPart;
-
 import info.nukepowered.impressivelogic.common.block.AbstractNetworkBlock;
 import info.nukepowered.impressivelogic.common.logic.network.LogicNetManager;
 import info.nukepowered.impressivelogic.common.logic.network.Network;
@@ -19,7 +18,6 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
-import java.util.Optional;
 
 /*
  * Copyright (c) Nukepowered 2022.
@@ -57,8 +55,8 @@ public abstract class BaseNetworkEntity extends BlockEntity implements INetworkP
 
     /**
      * Will be called 4 times total:
-     *  Client / Server
-     *  Main hand / Off-hand
+     * Client / Server
+     * Main hand / Off-hand
      */
     public InteractionResult onRightClick(Player player, InteractionHand hand, BlockHitResult hitResult) {
         return InteractionResult.PASS;

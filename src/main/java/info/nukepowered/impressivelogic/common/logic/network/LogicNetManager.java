@@ -5,7 +5,6 @@ import info.nukepowered.impressivelogic.common.block.AbstractNetworkBlock;
 import info.nukepowered.impressivelogic.common.logic.network.Network.Entity;
 import info.nukepowered.impressivelogic.common.logic.network.execution.NetworkExecutionManager;
 import info.nukepowered.impressivelogic.common.logic.network.execution.tasks.NetCompileTask;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.BlockPos.MutableBlockPos;
 import net.minecraft.core.Direction;
@@ -14,7 +13,6 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.server.ServerAboutToStartEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.*;
@@ -49,26 +47,31 @@ public class LogicNetManager {
     /**
      * @param network to join
      * @param partPos position of requester part
-     * @param from side of part we are trying to access
-     * @param part requester part
+     * @param from    side of part we are trying to access
+     * @param part    requester part
      * @return true if joined to network
      */
     public static boolean joinNetwork(Level level, Network network, BlockPos partPos, Direction from, INetworkPart part) {
-        if (!network.getEntityLocations().contains(partPos)) {
-            var netPos = partPos.relative(from);
-            var netDir = from.getOpposite();
-            var partOptional = network.findEntity(netPos);
+        var entityOpt = network.findEntity(partPos);
+        var netPos = partPos.relative(from);
+        var netDir = from.getOpposite();
+        var partOptional = network.findEntity(netPos);
 
-            if (partOptional.isPresent()) {
-                var netEntity = partOptional.get();
-                if (netEntity.getPart().acceptConnection(level, netPos, netDir)) {
-                    Entity entity;
-                    if ((entity = network.registerPart(partPos, part)) != null) {
-                        NETWORKS.registerPartMapping(level.dimension().location(), network, partPos);
-                        netEntity.getConnections().add(netDir);
-                        entity.getConnections().add(from);
-                        return true;
-                    }
+        if (partOptional.isPresent()) {
+            var netEntity = partOptional.get();
+            if (netEntity.getPart().acceptConnection(level, netPos, netDir)) {
+                Entity<?> entity;
+                if (entityOpt.isPresent()) {
+                    entityOpt.get().getConnections().add(from);
+                    netEntity.getConnections().add(netDir);
+
+                    return true;
+                } else if ((entity = network.registerPart(partPos, part)) != null) {
+                    NETWORKS.registerPartMapping(level.dimension().location(), network, partPos);
+                    netEntity.getConnections().add(netDir);
+                    entity.getConnections().add(from);
+
+                    return true;
                 }
             }
         }
@@ -90,13 +93,13 @@ public class LogicNetManager {
 
     /**
      * Removes part from registry, and from network
-     *
+     * <p>
      * This method is not validate state, will just delete part from registry.
      * If validation is required, call {@link #validateNetwork(Level, BlockPos, Direction)} right after
-     * @see AbstractNetworkBlock
      *
      * @param level
      * @param pos
+     * @see AbstractNetworkBlock
      */
     public static void removeFromNetwork(Level level, BlockPos pos) {
         var opt = findNetwork(level, pos);
@@ -109,12 +112,12 @@ public class LogicNetManager {
 
     /**
      * Will check network integrity, in case of network changes will schedule recompile.
-     *
+     * <p>
      * Should be called on neighbour update, in case of part was removed
      *
      * @param level
      * @param updatedBlock block that calling this validation
-     * @param updatedFrom Direction update triggered from (will not check this direction)
+     * @param updatedFrom  Direction update triggered from (will not check this direction)
      */
     public static void validateNetwork(Level level, BlockPos updatedBlock, Direction updatedFrom) {
         // If throws NPE here - you are using this method wrong
