@@ -5,7 +5,6 @@ import info.nukepowered.impressivelogic.common.block.BaseNetworkEntityHolder;
 import info.nukepowered.impressivelogic.common.blockentity.BaseNetworkEntity;
 import info.nukepowered.impressivelogic.common.blockentity.io.BooleanInputEntity;
 import info.nukepowered.impressivelogic.common.blockentity.io.BooleanOutputEntity;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;

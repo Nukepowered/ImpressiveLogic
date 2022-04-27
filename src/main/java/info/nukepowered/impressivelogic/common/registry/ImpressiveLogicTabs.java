@@ -29,7 +29,7 @@ public class ImpressiveLogicTabs {
             public ItemStack makeIcon() {
                 var obj = icon.get();
                 return obj instanceof ItemStack stack ? stack :
-                        obj instanceof RegistryObject<?> reg ? fromRegistryObject(reg) : ItemStack.EMPTY;
+                    obj instanceof RegistryObject<?> reg ? fromRegistryObject(reg) : ItemStack.EMPTY;
             }
         };
     }

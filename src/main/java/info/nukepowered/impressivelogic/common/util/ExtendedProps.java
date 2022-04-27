@@ -14,6 +14,7 @@ import java.util.Map;
 public class ExtendedProps extends Properties {
 
     public final Map<String, Object> extraData = new HashMap<>();
+
     protected ExtendedProps(Material material) {
         super(material, material.getColor());
     }

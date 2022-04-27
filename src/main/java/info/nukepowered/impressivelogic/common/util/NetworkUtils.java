@@ -22,8 +22,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
-import static java.nio.file.StandardOpenOption.*;
 import static info.nukepowered.impressivelogic.ImpressiveLogic.LOGGER;
+import static java.nio.file.StandardOpenOption.*;
 
 /*
  * Copyright (c) Nukepowered 2022.
@@ -39,8 +39,8 @@ public class NetworkUtils {
         var path = getPath();
 
         networks.stream()
-                .map(Network::writeToNBT)
-                .forEach(networkList::add);
+            .map(Network::writeToNBT)
+            .forEach(networkList::add);
         try {
             var tag = createOrReadFile(path);
             try (var output = Files.newOutputStream(path.resolve("networks.dat"), WRITE, TRUNCATE_EXISTING)) {
@@ -89,8 +89,8 @@ public class NetworkUtils {
     public static Level getLevel(ResourceLocation dimensionId) {
         var server = ServerLifecycleHooks.getCurrentServer();
         var resourceKey = server.levelKeys().stream()
-                .filter(key -> key.getRegistryName().equals(dimensionId))
-                .findFirst();
+            .filter(key -> key.getRegistryName().equals(dimensionId))
+            .findFirst();
         return server.getLevel(resourceKey.get());
     }
 
@@ -112,7 +112,8 @@ public class NetworkUtils {
         } else {
             try (var input = Files.newInputStream(path)) {
                 compound = NbtIo.readCompressed(input);
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
         }
 
         return compound;
@@ -120,6 +121,6 @@ public class NetworkUtils {
 
     private static Path getPath() {
         return ServerLifecycleHooks.getCurrentServer()
-                .getWorldPath(DATA_PATH);
+            .getWorldPath(DATA_PATH);
     }
 }

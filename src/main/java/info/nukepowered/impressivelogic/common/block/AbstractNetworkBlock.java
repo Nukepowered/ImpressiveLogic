@@ -3,7 +3,6 @@ package info.nukepowered.impressivelogic.common.block;
 import info.nukepowered.impressivelogic.api.logic.INetworkPart;
 import info.nukepowered.impressivelogic.common.logic.network.LogicNetManager;
 import info.nukepowered.impressivelogic.common.logic.network.Network;
-
 import info.nukepowered.impressivelogic.common.logic.network.Network.Entity;
 import info.nukepowered.impressivelogic.common.util.ComponentUtils;
 import net.minecraft.ChatFormatting;
@@ -20,7 +19,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/*
+/**
  * Copyright (c) Nukepowered 2022.
  *
  * @author TheDarkDnKTv
@@ -59,10 +58,6 @@ public abstract class AbstractNetworkBlock extends Block implements INetworkPart
                 var opt = LogicNetManager.findNetwork(level, pos.relative(dir));
                 if (opt.isPresent()) {
                     var network = opt.get();
-                    if (networksJoined.contains(network)) {
-                        continue;
-                    }
-
                     if (LogicNetManager.joinNetwork(level, network, pos, dir, part)) {
                         networksJoined.add(network);
                     }

@@ -1,10 +1,9 @@
 package info.nukepowered.impressivelogic.common.block;
 
 import info.nukepowered.impressivelogic.api.logic.INetworkPart;
-import info.nukepowered.impressivelogic.common.logic.network.CommonEntityTicker;
 import info.nukepowered.impressivelogic.common.blockentity.BaseNetworkEntity;
+import info.nukepowered.impressivelogic.common.logic.network.CommonEntityTicker;
 import info.nukepowered.impressivelogic.common.util.ExtendedProps;
-
 import info.nukepowered.impressivelogic.common.util.PredicateEntityType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -29,13 +28,15 @@ import org.apache.commons.lang3.function.TriFunction;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Supplier;
 
-import static info.nukepowered.impressivelogic.ImpressiveLogic.LOGGER;
 import static info.nukepowered.impressivelogic.ImpressiveLogic.COMMON_MARKER;
+import static info.nukepowered.impressivelogic.ImpressiveLogic.LOGGER;
 
-/*
+/**
  * Copyright (c) Nukepowered 2022.
  *
  * @author TheDarkDnKTv
@@ -46,6 +47,7 @@ public class BaseNetworkEntityHolder<T extends BaseNetworkEntity> extends Abstra
 
     /**
      * To init holder please use {@link Builder}
+     *
      * @param definition
      */
     protected BaseNetworkEntityHolder(EntityDefinition<T> definition) {
@@ -193,6 +195,7 @@ public class BaseNetworkEntityHolder<T extends BaseNetworkEntity> extends Abstra
             this.tickable = true;
             return this;
         }
+
         public BaseNetworkEntityHolder<T> build() {
             blockProperties.extraData("states", states);
             var definition = new EntityDefinition<T>(constructor, type, states, blockProperties, tickable);
@@ -201,11 +204,11 @@ public class BaseNetworkEntityHolder<T extends BaseNetworkEntity> extends Abstra
     }
 
     protected record EntityDefinition<T extends BaseNetworkEntity>(
-            BlockEntitySupplier<T> constructor,
-            PartType type,
-            Set<Pair<Property<?>, ?>> states,
-            Properties blockProperties,
-            boolean tickable
+        BlockEntitySupplier<T> constructor,
+        PartType type,
+        Set<Pair<Property<?>, ?>> states,
+        Properties blockProperties,
+        boolean tickable
     ) {
         protected EntityDefinition(BlockEntitySupplier<T> constructor, PartType type,
                                    Set<Pair<Property<?>, ?>> states, Properties blockProperties,
