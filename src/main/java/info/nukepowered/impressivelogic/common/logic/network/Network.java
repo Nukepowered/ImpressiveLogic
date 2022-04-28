@@ -4,6 +4,7 @@ import com.google.common.graph.Graph;
 import info.nukepowered.impressivelogic.api.logic.INetworkPart;
 import info.nukepowered.impressivelogic.api.logic.INetworkPart.PartType;
 import info.nukepowered.impressivelogic.api.logic.io.INetworkInput;
+import info.nukepowered.impressivelogic.api.logic.io.INetworkOutput;
 import info.nukepowered.impressivelogic.common.logic.network.execution.NetworkExecutionManager;
 import info.nukepowered.impressivelogic.common.logic.network.execution.tasks.NetStateUpdateTask;
 import info.nukepowered.impressivelogic.common.util.NetworkUtils;
@@ -37,7 +38,7 @@ public class Network {
 
     private Set<Entity<?>> entities = ConcurrentHashMap.newKeySet();
     private Set<Entity<INetworkInput<?>>> inputs = new HashSet<>();
-    private Graph<Entity<?>> connections;
+    private volatile Graph<Entity<?>> connections;
 
     /**
      * Will trigger network to check logic state and update outputs
@@ -246,6 +247,11 @@ public class Network {
         public boolean isInputType() {
             var part = this.getPart();
             return part.getPartType() == PartType.IO && part instanceof INetworkInput<?>;
+        }
+
+        public boolean isOutputType() {
+            var part = this.getPart();
+            return part.getPartType() == PartType.IO && part instanceof INetworkOutput<?>;
         }
 
         @Override
