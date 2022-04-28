@@ -5,6 +5,7 @@ import info.nukepowered.impressivelogic.common.logic.network.Network.Entity;
 import info.nukepowered.impressivelogic.common.logic.network.execution.tasks.AbstractNetworkUpdateTask;
 import info.nukepowered.impressivelogic.common.logic.network.execution.tasks.NetworkUpdateCompileTask;
 import info.nukepowered.impressivelogic.common.logic.network.execution.tasks.NetworkUpdateAddTask;
+import info.nukepowered.impressivelogic.common.logic.network.execution.tasks.NetworkUpdateRemoveTask;
 
 import java.util.function.BiFunction;
 
@@ -16,7 +17,8 @@ import java.util.function.BiFunction;
 public enum NetworkUpdateType {
 
     COMPILE(NetworkUpdateCompileTask::new),
-    ADD_NODE(NetworkUpdateAddTask::new);
+    ADD_NODE(NetworkUpdateAddTask::new),
+    REMOVE_NODE(NetworkUpdateRemoveTask::new);
 
     private final BiFunction<Network, Entity<?>, ? extends AbstractNetworkUpdateTask> factory;
 

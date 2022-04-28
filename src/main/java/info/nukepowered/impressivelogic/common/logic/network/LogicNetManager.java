@@ -105,7 +105,7 @@ public class LogicNetManager {
         if (opt.isPresent()) {
             var network = opt.get();
             NETWORKS.unregisterPartMapping(level.dimension().location(), pos);
-            network.unregisterPart(pos);
+            updateNetworkStructure(network, network.unregisterPart(pos), NetworkUpdateType.REMOVE_NODE);
         }
     }
 

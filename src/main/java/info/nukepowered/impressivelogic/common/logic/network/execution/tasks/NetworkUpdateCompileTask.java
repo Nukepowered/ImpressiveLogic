@@ -29,7 +29,7 @@ public class NetworkUpdateCompileTask extends AbstractNetworkUpdateTask {
     }
 
     @Override
-    public void execute() {
+    public void update() {
         LOGGER.debug(COMPILE_MARKER, "Network COMPILE execution for {}", suspect);
         // Init of entities mapping, and filtering input nodes
         Map<Entity<?>, Queue<Direction>> inputs = suspect.getInputs().stream()
@@ -53,8 +53,6 @@ public class NetworkUpdateCompileTask extends AbstractNetworkUpdateTask {
                     .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
             }
         } while (!nodes.isEmpty());
-
-        suspect.setConnections(ImmutableGraph.copyOf(graph));
     }
 
     private boolean checkNodesEntry(Entry<Entity<?>, Queue<Direction>> entry) {

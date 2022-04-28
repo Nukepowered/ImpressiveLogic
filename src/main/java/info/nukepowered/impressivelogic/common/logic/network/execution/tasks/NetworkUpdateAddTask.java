@@ -26,7 +26,7 @@ public class NetworkUpdateAddTask extends AbstractNetworkUpdateTask {
     }
 
     @Override
-    public void execute() {
+    public void update() {
         LOGGER.debug(COMPILE_MARKER, "Network ADD_NODE execution for {}, cause {}", suspect, cause);
 
         if (this.cause.getType() != PartType.CONNECTOR)  {
@@ -34,9 +34,5 @@ public class NetworkUpdateAddTask extends AbstractNetworkUpdateTask {
             // Just add new connections from new node, do not update graph fully
             this.createDirectedEdges(this.cause, connectedNodes);
         }
-
-        this.suspect.setConnections(ImmutableGraph.copyOf(graph));
     }
-
-
 }

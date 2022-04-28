@@ -61,7 +61,7 @@ public class Network {
         return entity;
     }
 
-    public void unregisterPart(BlockPos pos) {
+    public Entity<?> unregisterPart(BlockPos pos) {
         var opt = this.findEntity(pos);
         if (opt.isPresent()) {
             var entity = opt.get();
@@ -79,7 +79,11 @@ public class Network {
                 .filter(e -> toUpdate.containsKey(e.location))
                 .map(e -> Pair.of(e, toUpdate.get(e.location)))
                 .forEach(p -> p.getKey().connections.remove(p.getValue()));
+
+            return entity;
         }
+
+        return null;
     }
 
     public void merge(Network other) {

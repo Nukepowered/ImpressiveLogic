@@ -2,6 +2,7 @@ package info.nukepowered.impressivelogic.common.logic.network.execution.tasks;
 
 import com.google.common.graph.GraphBuilder;
 import com.google.common.graph.Graphs;
+import com.google.common.graph.ImmutableGraph;
 import com.google.common.graph.MutableGraph;
 import info.nukepowered.impressivelogic.api.logic.INetworkPart.PartType;
 import info.nukepowered.impressivelogic.common.logic.network.Network;
@@ -31,6 +32,17 @@ public abstract class AbstractNetworkUpdateTask extends AbstractNetworkTask {
         this.graph = suspect.getConnections() == null ?
             GraphBuilder.directed().build() :
             Graphs.copyOf(suspect.getConnections());
+    }
+
+    /**
+     * Performs graph update operation
+     */
+    protected abstract void update();
+
+    @Override
+    protected final void execute() {
+        this.update();
+        suspect.setConnections(ImmutableGraph.copyOf(graph));
     }
 
     /**
