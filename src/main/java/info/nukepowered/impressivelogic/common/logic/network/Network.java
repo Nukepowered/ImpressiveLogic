@@ -1,9 +1,13 @@
 package info.nukepowered.impressivelogic.common.logic.network;
 
 import com.google.common.graph.Graph;
+import com.google.common.graph.GraphBuilder;
+import com.google.common.graph.Graphs;
+import com.google.common.graph.ImmutableGraph;
 import info.nukepowered.impressivelogic.api.logic.INetworkPart;
 import info.nukepowered.impressivelogic.api.logic.INetworkPart.PartType;
 import info.nukepowered.impressivelogic.api.logic.io.INetworkInput;
+import info.nukepowered.impressivelogic.api.logic.io.INetworkOutput;
 import info.nukepowered.impressivelogic.common.logic.network.execution.NetworkExecutionManager;
 import info.nukepowered.impressivelogic.common.logic.network.execution.tasks.NetStateUpdateTask;
 import info.nukepowered.impressivelogic.common.util.NetworkUtils;
@@ -37,7 +41,7 @@ public class Network {
 
     private Set<Entity<?>> entities = ConcurrentHashMap.newKeySet();
     private Set<Entity<INetworkInput<?>>> inputs = new HashSet<>();
-    private Graph<Entity<?>> connections;
+    private volatile Graph<Entity<?>> connections;
 
     /**
      * Will trigger network to check logic state and update outputs
@@ -60,7 +64,7 @@ public class Network {
         return entity;
     }
 
-    public void unregisterPart(BlockPos pos) {
+    public Entity<?> unregisterPart(BlockPos pos) {
         var opt = this.findEntity(pos);
         if (opt.isPresent()) {
             var entity = opt.get();
@@ -78,7 +82,11 @@ public class Network {
                 .filter(e -> toUpdate.containsKey(e.location))
                 .map(e -> Pair.of(e, toUpdate.get(e.location)))
                 .forEach(p -> p.getKey().connections.remove(p.getValue()));
+
+            return entity;
         }
+
+        return null;
     }
 
     public void merge(Network other) {
@@ -87,7 +95,7 @@ public class Network {
         var oEntities = other.entities.stream()
             .collect(Collectors.toMap(Entity::getLocation, Function.identity()));
 
-
+        // Merge connections of entities
         for (var entry : oEntities.entrySet()) {
             var oEntity = entry.getValue();
             var tEntity = tEntities.get(entry.getKey());
@@ -98,12 +106,16 @@ public class Network {
             tEntities.put(entry.getKey(), oEntity);
         }
 
-
+        // Remove and put again entities of this net, to update hash
         this.entities.clear();
         tEntities.values().forEach(this.entities::add);
 
+        // Merge entities itself
         this.entities.addAll(other.entities);
         this.inputs.addAll(other.inputs);
+
+        // Merge Graphs
+        this.mergeGraph(other.connections);
     }
 
     public Network split(Collection<BlockPos> parts) {
@@ -155,6 +167,19 @@ public class Network {
 
     public boolean isEmpty() {
         return this.entities.isEmpty();
+    }
+
+    private void mergeGraph(final Graph<Entity<?>> other) {
+        final var graph = this.connections != null ?
+            Graphs.copyOf(this.connections) :
+            GraphBuilder.directed().<Entity<?>>build();
+
+        if (other != null) {
+            other.nodes().forEach(graph::addNode);
+            other.edges().forEach(graph::putEdge);
+        }
+
+        this.connections = ImmutableGraph.copyOf(graph);
     }
 
     public CompoundTag writeToNBT() {
@@ -246,6 +271,11 @@ public class Network {
         public boolean isInputType() {
             var part = this.getPart();
             return part.getPartType() == PartType.IO && part instanceof INetworkInput<?>;
+        }
+
+        public boolean isOutputType() {
+            var part = this.getPart();
+            return part.getPartType() == PartType.IO && part instanceof INetworkOutput<?>;
         }
 
         @Override

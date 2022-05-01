@@ -53,12 +53,13 @@ public abstract class AbstractNetworkBlock extends Block implements INetworkPart
         if (!level.isClientSide && this.checkStateChanged(previousState, state)) {
             var networksJoined = new HashSet<Network>();
             var part = this.getPart(level, pos);
+            Entity<?> entity = null;
 
             for (var dir : part.getConnectableSides(level, pos)) {
                 var opt = LogicNetManager.findNetwork(level, pos.relative(dir));
                 if (opt.isPresent()) {
                     var network = opt.get();
-                    if (LogicNetManager.joinNetwork(level, network, pos, dir, part)) {
+                    if ((entity = LogicNetManager.joinNetwork(level, network, pos, dir, part)) != null) {
                         networksJoined.add(network);
                     }
                 }
@@ -68,7 +69,7 @@ public abstract class AbstractNetworkBlock extends Block implements INetworkPart
             if (networksJoined.isEmpty()) {
                 LogicNetManager.registerNewNetwork(level, pos, part);
             } else {
-                LogicNetManager.mergeNetworks(level, networksJoined);
+                LogicNetManager.mergeNetworks(level, entity, networksJoined);
             }
         }
     }

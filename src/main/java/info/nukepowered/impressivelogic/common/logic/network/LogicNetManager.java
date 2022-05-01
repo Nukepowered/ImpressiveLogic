@@ -4,7 +4,8 @@ import info.nukepowered.impressivelogic.api.logic.INetworkPart;
 import info.nukepowered.impressivelogic.common.block.AbstractNetworkBlock;
 import info.nukepowered.impressivelogic.common.logic.network.Network.Entity;
 import info.nukepowered.impressivelogic.common.logic.network.execution.NetworkExecutionManager;
-import info.nukepowered.impressivelogic.common.logic.network.execution.tasks.NetCompileTask;
+import info.nukepowered.impressivelogic.common.logic.network.execution.NetworkUpdateType;
+import info.nukepowered.impressivelogic.common.logic.network.execution.tasks.NetworkUpdateCompileTask;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.BlockPos.MutableBlockPos;
 import net.minecraft.core.Direction;
@@ -16,6 +17,9 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.*;
+
+import static info.nukepowered.impressivelogic.ImpressiveLogic.LOGGER;
+import static info.nukepowered.impressivelogic.common.logic.network.execution.tasks.AbstractNetworkUpdateTask.COMPILE_MARKER;
 
 /**
  * Copyright (c) Nukepowered 2022.
@@ -51,7 +55,8 @@ public class LogicNetManager {
      * @param part    requester part
      * @return true if joined to network
      */
-    public static boolean joinNetwork(Level level, Network network, BlockPos partPos, Direction from, INetworkPart part) {
+    public static Entity<?> joinNetwork(Level level, Network network, BlockPos partPos, Direction from, INetworkPart part) {
+        Entity<?> entity = null;
         var entityOpt = network.findEntity(partPos);
         var netPos = partPos.relative(from);
         var netDir = from.getOpposite();
@@ -60,26 +65,22 @@ public class LogicNetManager {
         if (partOptional.isPresent()) {
             var netEntity = partOptional.get();
             if (netEntity.getPart().acceptConnection(level, netPos, netDir)) {
-                Entity<?> entity;
                 if (entityOpt.isPresent()) {
-                    entityOpt.get().getConnections().add(from);
+                    entity = entityOpt.get();
+                    entity.getConnections().add(from);
                     netEntity.getConnections().add(netDir);
-
-                    return true;
                 } else if ((entity = network.registerPart(partPos, part)) != null) {
                     NETWORKS.registerPartMapping(level.dimension().location(), network, partPos);
                     netEntity.getConnections().add(netDir);
                     entity.getConnections().add(from);
-
-                    return true;
                 }
             }
         }
 
-        return false;
+        return entity;
     }
 
-    public static void mergeNetworks(Level level, Collection<Network> networks) {
+    public static void mergeNetworks(Level level, Entity<?> cause, Collection<Network> networks) {
         var queue = new ArrayDeque<>(networks);
         var first = queue.poll();
 
@@ -88,7 +89,11 @@ public class LogicNetManager {
             NETWORKS.updateMappings(level.dimension().location(), first, net.getEntityLocations());
         }
 
-        NetworkExecutionManager.instance().submit(new NetCompileTask(first));
+        // If we've joined only one network, update network by faster procedure
+        var type = queue.isEmpty() ?
+            NetworkUpdateType.ADD_NODE :
+            NetworkUpdateType.MERGE;
+        updateNetworkStructure(first, cause, type);
     }
 
     /**
@@ -106,7 +111,7 @@ public class LogicNetManager {
         if (opt.isPresent()) {
             var network = opt.get();
             NETWORKS.unregisterPartMapping(level.dimension().location(), pos);
-            network.unregisterPart(pos);
+            updateNetworkStructure(network, network.unregisterPart(pos), NetworkUpdateType.REMOVE_NODE);
         }
     }
 
@@ -120,11 +125,13 @@ public class LogicNetManager {
      * @param updatedFrom  Direction update triggered from (will not check this direction)
      */
     public static void validateNetwork(Level level, BlockPos updatedBlock, Direction updatedFrom) {
+        LOGGER.debug(COMPILE_MARKER, "Network validation run for block {}, called from: {}", updatedBlock, updatedFrom);
+
         // If throws NPE here - you are using this method wrong
         // It should be called only if Part of network notice update around
         var currentNetwork = findNetwork(level, updatedBlock).get();
-        var part = currentNetwork.findEntity(updatedBlock).get().getPart();
-        final var initSides = new HashSet<>(part.getConnectableSides(level, updatedBlock));
+        var entityUpdated = currentNetwork.findEntity(updatedBlock).get();
+        final var initSides = new HashSet<>(entityUpdated.getPart().getConnectableSides(level, updatedBlock));
 
         // Will not check for side update came from, block removal expected
         initSides.remove(updatedFrom);
@@ -178,7 +185,7 @@ public class LogicNetManager {
         if (!parts.containsAll(currentNetwork.getEntityLocations())) {
             var newNetwork = currentNetwork.split(parts);
             NETWORKS.updateMappings(level.dimension().location(), newNetwork, parts);
-            NetworkExecutionManager.instance().submit(new NetCompileTask(newNetwork));
+            NetworkExecutionManager.instance().submit(new NetworkUpdateCompileTask(newNetwork, entityUpdated));
         }
     }
 
@@ -188,5 +195,10 @@ public class LogicNetManager {
 
     public static NetworkRegistry getRegistry() {
         return NETWORKS;
+    }
+
+    public static void updateNetworkStructure(Network network, Entity<?> cause, NetworkUpdateType updateType) {
+        var task = updateType.createTask(network, cause);
+        NetworkExecutionManager.instance().submit(task);
     }
 }
