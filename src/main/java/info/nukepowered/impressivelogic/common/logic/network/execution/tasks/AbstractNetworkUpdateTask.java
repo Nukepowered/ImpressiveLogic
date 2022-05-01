@@ -102,15 +102,22 @@ public abstract class AbstractNetworkUpdateTask extends AbstractNetworkTask {
         return result;
     }
 
+    protected void createDirectedEdges(Entity<?> from, Set<Entity<?>> rest) {
+        this.createDirectedEdges(from, rest, true);
+    }
+
     /**
      * Will create edges in graph from entity to rest of them according to inputs/outputs
      * @param from
      * @param rest
+     * @param addToGraph will add nodes to graph
      */
-    protected void createDirectedEdges(Entity<?> from, Set<Entity<?>> rest) {
+    protected void createDirectedEdges(Entity<?> from, Set<Entity<?>> rest, boolean addToGraph) {
         // TODO raw impl, need to check inputs/outputs
-        graph.addNode(from);
-        rest.forEach(graph::addNode);
+        if (addToGraph) {
+            graph.addNode(from);
+            rest.forEach(graph::addNode);
+        }
 
         if (from.isInputType()) {
             for (var entity : rest) {

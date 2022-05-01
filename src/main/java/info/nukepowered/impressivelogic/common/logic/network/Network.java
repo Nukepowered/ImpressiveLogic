@@ -1,6 +1,9 @@
 package info.nukepowered.impressivelogic.common.logic.network;
 
 import com.google.common.graph.Graph;
+import com.google.common.graph.GraphBuilder;
+import com.google.common.graph.Graphs;
+import com.google.common.graph.ImmutableGraph;
 import info.nukepowered.impressivelogic.api.logic.INetworkPart;
 import info.nukepowered.impressivelogic.api.logic.INetworkPart.PartType;
 import info.nukepowered.impressivelogic.api.logic.io.INetworkInput;
@@ -92,7 +95,7 @@ public class Network {
         var oEntities = other.entities.stream()
             .collect(Collectors.toMap(Entity::getLocation, Function.identity()));
 
-
+        // Merge connections of entities
         for (var entry : oEntities.entrySet()) {
             var oEntity = entry.getValue();
             var tEntity = tEntities.get(entry.getKey());
@@ -103,12 +106,16 @@ public class Network {
             tEntities.put(entry.getKey(), oEntity);
         }
 
-
+        // Remove and put again entities of this net, to update hash
         this.entities.clear();
         tEntities.values().forEach(this.entities::add);
 
+        // Merge entities itself
         this.entities.addAll(other.entities);
         this.inputs.addAll(other.inputs);
+
+        // Merge Graphs
+        this.mergeGraph(other.connections);
     }
 
     public Network split(Collection<BlockPos> parts) {
@@ -160,6 +167,19 @@ public class Network {
 
     public boolean isEmpty() {
         return this.entities.isEmpty();
+    }
+
+    private void mergeGraph(final Graph<Entity<?>> other) {
+        final var graph = this.connections != null ?
+            Graphs.copyOf(this.connections) :
+            GraphBuilder.directed().<Entity<?>>build();
+
+        if (other != null) {
+            other.nodes().forEach(graph::addNode);
+            other.edges().forEach(graph::putEdge);
+        }
+
+        this.connections = ImmutableGraph.copyOf(graph);
     }
 
     public CompoundTag writeToNBT() {

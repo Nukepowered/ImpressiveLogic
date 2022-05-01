@@ -18,6 +18,9 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.*;
 
+import static info.nukepowered.impressivelogic.ImpressiveLogic.LOGGER;
+import static info.nukepowered.impressivelogic.common.logic.network.execution.tasks.AbstractNetworkUpdateTask.COMPILE_MARKER;
+
 /**
  * Copyright (c) Nukepowered 2022.
  *
@@ -87,7 +90,10 @@ public class LogicNetManager {
         }
 
         // If we've joined only one network, update network by faster procedure
-        updateNetworkStructure(first, cause, queue.isEmpty() ? NetworkUpdateType.ADD_NODE : NetworkUpdateType.COMPILE);
+        var type = queue.isEmpty() ?
+            NetworkUpdateType.ADD_NODE :
+            NetworkUpdateType.MERGE;
+        updateNetworkStructure(first, cause, type);
     }
 
     /**
@@ -119,6 +125,8 @@ public class LogicNetManager {
      * @param updatedFrom  Direction update triggered from (will not check this direction)
      */
     public static void validateNetwork(Level level, BlockPos updatedBlock, Direction updatedFrom) {
+        LOGGER.debug(COMPILE_MARKER, "Network validation run for block {}, called from: {}", updatedBlock, updatedFrom);
+
         // If throws NPE here - you are using this method wrong
         // It should be called only if Part of network notice update around
         var currentNetwork = findNetwork(level, updatedBlock).get();
